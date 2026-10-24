@@ -19,7 +19,7 @@
 
 ## Демо онлайн
 
-https://vapes.github.io/Video-to-particles/ — публикуется из ветки `main` через GitHub Pages.
+https://vapes.github.io/Video-to-particles/ — на главной демо «Видео против частиц», бенчмарк упаковок по адресу `/packing-bench/`. Публикуется из ветки `main` через GitHub Pages; главную пересобирает `python3 tools/build_vs.py`.
 
 ## Запуск демо
 

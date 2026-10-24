@@ -3,13 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Video to particles</title>
-<meta name="description" content="Анимация выигрыша для слота на Pixi 8: AVIF-секвенция, тайл-дельты, видео, WebCodecs и частицы в реальном времени.">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Видео против частиц</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
 <style>
-/* Layout: one narrow column — what the project is, the two demos as links, the headline numbers. */
+/* Layout: one column read top to bottom — the generator's video, the same win as live particles, then the code to paste. */
 :root {
   --bg: #F3F0F5;
   --surface: #FFFFFF;
@@ -18,88 +19,928 @@
   --line: #DED7E3;
   --ember: #C2410C;
   --good: #1C7348;
+  --stage: #07050C;
+  --code-bg: #FBF8FC;
+  --code-fg: #2A2230;
+  --tok-com: #7D7385;
+  --tok-str: #A0450C;
+  --tok-kw: #7A2E8C;
+  --tok-num: #1C6B8A;
   --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
   --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #110D14; --surface: #1A151E; --fg: #F1EBF3; --muted: #A69CAD; --line: #30283A; --ember: #FB923C; --good: #4FC58C; color-scheme: dark; }
+  :root:not([data-theme="light"]) {
+    --bg: #110D14; --surface: #1A151E; --fg: #F1EBF3; --muted: #A69CAD; --line: #30283A;
+    --ember: #FB923C; --good: #4FC58C; --stage: #050309;
+    --code-bg: #15111A; --code-fg: #E9E2EE; --tok-com: #8C8296; --tok-str: #F4A261; --tok-kw: #D8A6F0; --tok-num: #7CC8E8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #110D14; --surface: #1A151E; --fg: #F1EBF3; --muted: #A69CAD; --line: #30283A;
+  --ember: #FB923C; --good: #4FC58C; --stage: #050309;
+  --code-bg: #15111A; --code-fg: #E9E2EE; --tok-com: #8C8296; --tok-str: #F4A261; --tok-kw: #D8A6F0; --tok-num: #7CC8E8;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
-  margin: 0; background: var(--bg); color: var(--fg);
+  background: var(--bg); color: var(--fg);
   font-family: var(--font-body); font-size: 15px; line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 32px 48px;
+  padding-block: 20px 48px;
 }
-main { max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+main { max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; }
 main > * { min-width: 0; }
-h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 6.5vw, 38px); line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.01em; text-wrap: balance; }
-h2 { font-family: var(--font-display); font-weight: 500; font-size: 18px; margin: 0 0 6px; text-wrap: balance; }
+section { display: grid; gap: 12px; min-width: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 6vw, 34px); line-height: 1.1; margin: 0 0 8px; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-family: var(--font-display); font-weight: 500; font-size: 18px; margin: 0; text-wrap: balance; }
+h3 { font-size: 14px; font-weight: 600; margin: 0; }
 p { margin: 0; max-width: 65ch; }
 .lead { color: var(--muted); }
-.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember); margin-bottom: 8px; }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember); margin-bottom: 6px; }
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
-.demos { display: grid; gap: 12px; }
-.demo {
-  display: grid; gap: 6px; padding: 18px; border-radius: 14px;
-  background: var(--surface); border: 1px solid var(--line); color: inherit; text-decoration: none;
+.frame { position: relative; width: 100%; border-radius: 18px; overflow: hidden; background: var(--stage); }
+.frame.video { aspect-ratio: 692 / 720; max-width: 520px; justify-self: center; }
+.frame.video video { width: 100%; height: 100%; display: block; object-fit: cover; }
+.frame.fx { aspect-ratio: 1; max-width: 520px; justify-self: center; cursor: pointer; touch-action: manipulation; }
+.frame.fx canvas { width: 100% !important; height: 100% !important; display: block; }
+.play {
+  position: absolute; inset: 0; margin: auto; width: max-content; height: max-content;
+  font: 600 15px/1 var(--font-body); color: #fff; background: rgba(194, 65, 12, 0.92); border: 0; border-radius: 999px; padding: 13px 20px; cursor: pointer;
 }
-.demo:hover { border-color: var(--ember); }
-.demo:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-.demo .go { font: 600 13px/1 var(--font-body); color: var(--ember); margin-top: 4px; }
-.demo p { color: var(--muted); font-size: 14px; }
+.hud {
+  position: absolute; left: 10px; top: 10px; font: 600 11px/1.35 var(--font-mono);
+  color: #F5E9D6; background: rgba(10, 6, 14, 0.55); border: 1px solid rgba(255, 220, 170, 0.18);
+  padding: 5px 8px; border-radius: 7px; font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.facts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); justify-content: center; }
+.facts b { color: var(--fg); font-weight: 600; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.facts b.good { color: var(--good); }
 
-.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-table { border-collapse: collapse; width: 100%; font-size: 13px; }
-th, td { padding: 9px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
-th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 150px; }
-thead th { font-weight: 600; font-size: 12px; color: var(--muted); }
-tbody tr:last-child td { border-bottom: 0; }
-td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-td.best { color: var(--good); font-weight: 600; }
-.note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
-a { color: var(--ember); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.btn { font: 600 14px/1 var(--font-body); color: #fff; background: var(--ember); border: 0; border-radius: 10px; padding: 11px 16px; cursor: pointer; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: 500 14px/1 var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 9px 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn:focus-visible, .seg button:focus-visible, .play:focus-visible, .copy:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 65ch; }
+.code { border: 1px solid var(--line); border-radius: 12px; background: var(--code-bg); overflow: hidden; min-width: 0; }
+.code-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); }
+.code-head .name { font: 600 12px/1.2 var(--font-mono); color: var(--fg); }
+.code-head .meta { font: 400 11px/1.2 var(--font-mono); color: var(--muted); }
+.copy { font: 600 12px/1 var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; cursor: pointer; flex: none; }
+pre { margin: 0; padding: 12px 14px; overflow-x: auto; font: 400 12px/1.55 var(--font-mono); color: var(--code-fg); tab-size: 2; }
+pre.tall { max-height: 460px; overflow: auto; }
+.c { color: var(--tok-com); } .s { color: var(--tok-str); } .k { color: var(--tok-kw); } .n { color: var(--tok-num); }
+.note { font-size: 12.5px; color: var(--muted); max-width: 65ch; }
+.note a { color: var(--ember); }
+@media (prefers-reduced-motion: reduce) { .btn, .copy { transition: none; } }
 </style>
 </head>
 <body>
 <main>
   <header>
-    <div class="eyebrow">Pixi 8 · игра на 60 fps</div>
-    <h1>Video to particles</h1>
-    <p class="lead">Как уложить анимацию выигрыша для слота в минимум мегабайт и видеопамяти: AVIF-секвенция, тайл-дельты, видео, WebCodecs и частицы в реальном времени на настоящем ролике из генератора.</p>
+    <div class="eyebrow">Pixi 8 · одна и та же монета</div>
+    <h1>Видео против частиц</h1>
+    <p class="lead">Сверху ролик из генератора как есть. Ниже тот же выигрыш, собранный из одной картинки монеты и частиц в реальном времени. В самом низу код, который запускает эту сцену, — его можно вставить в проект.</p>
   </header>
 
-  <nav class="demos" aria-label="Демо">
-    <a class="demo" href="fire-coin-win/">
-      <h2>Видео против частиц</h2>
-      <p>Ролик из генератора и тот же выигрыш из одной картинки монеты и частиц. Внизу модуль FireCoinWin для вставки в проект.</p>
-      <span class="go">Открыть демо →</span>
-    </a>
-    <a class="demo" href="packing-bench/">
-      <h2>Тайл-дельты против AVIF-секвенции</h2>
-      <p>Четыре анимации в четырёх упаковках. Кнопка «Замерить» меряет загрузку, декод, видеопамять и время кадра на твоём устройстве.</p>
-      <span class="go">Открыть демо →</span>
-    </a>
-  </nav>
-
-  <section aria-label="Итог">
-    <h2>«Монета в огне», 5 секунд</h2>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Упаковка</th><th>Скачать</th><th>Видеопамять</th></tr></thead>
-        <tbody>
-          <tr><td>Монета + частицы</td><td class="num best">0,05 МБ</td><td class="num best">≈2 МБ</td></tr>
-          <tr><td>Видео из генератора</td><td class="num">0,99 МБ</td><td class="num">1,9 МБ</td></tr>
-          <tr><td>AVIF-секвенция</td><td class="num">3,97 МБ</td><td class="num">226 МБ</td></tr>
-          <tr><td>Тайл-дельты</td><td class="num">4,61 МБ</td><td class="num">230 МБ</td></tr>
-        </tbody>
-      </table>
+  <section aria-labelledby="h-video">
+    <div class="label">1 · Видео</div>
+    <h2 id="h-video">Ролик из генератора</h2>
+    <div class="frame video">
+      <video id="vid" src="fire-coin-win/clip.mp4" autoplay muted loop playsinline preload="auto"></video>
+      <button type="button" class="play" id="vid-play" hidden>Включить видео</button>
     </div>
-    <p class="note">Все замеры, скрипты и модуль — в <a href="https://github.com/vapes/Video-to-particles">репозитории</a>.</p>
+    <div class="facts"><span>Файл <b>0,99 МБ</b></span><span>Длина <b>5 с</b>, 24 fps</span><span>Видеопамять <b>1,90 МБ</b></span></div>
+  </section>
+
+  <section aria-labelledby="h-fx">
+    <div class="label">2 · Частицы</div>
+    <h2 id="h-fx">Монета + код</h2>
+    <div class="frame fx" id="stage" role="button" tabindex="0" aria-label="Запустить выигрыш ещё раз"><div class="hud" id="hud">загрузка…</div></div>
+    <div class="facts"><span>Монета <b class="good">0,03 МБ</b></span><span>Модуль <b class="good">0,02 МБ</b></span><span>Длина <b>бесконечно</b></span><span>Видеопамять <b id="vram">…</b></span></div>
+    <div class="controls">
+      <button type="button" class="btn" id="again">Ещё раз</button>
+      <div class="seg" id="density" aria-label="Количество частиц">
+        <button type="button" id="d-low" data-v="0.5" aria-pressed="false">Экономно</button>
+        <button type="button" id="d-mid" data-v="1" aria-pressed="true">Норма</button>
+        <button type="button" id="d-high" data-v="2" aria-pressed="false">Максимум</button>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-code">
+    <div class="label">3 · Код</div>
+    <h2 id="h-code">Как вставить в проект на Pixi 8</h2>
+    <ol class="steps">
+      <li>Положи модуль <code>fire-coin-win.js</code> рядом с кодом сцены.</li>
+      <li>Подготовь круглую текстуру символа с прозрачным фоном.</li>
+      <li>Создай эффект, добавь на сцену и вызывай <code>update()</code> в тикере, а <code>play()</code> — когда выпал выигрыш.</li>
+    </ol>
+    <div class="code">
+      <div class="code-head"><div><div class="name">scene.js</div><div class="meta">подключение</div></div><button type="button" class="copy" data-for="code-usage">Скопировать</button></div>
+      <pre id="code-usage"><span class="k">import</span> { Assets } <span class="k">from</span> <span class="s">'pixi.js'</span>;
+<span class="k">import</span> { FireCoinWin } <span class="k">from</span> <span class="s">'./fire-coin-win.js'</span>;
+
+<span class="c">// круглый символ с прозрачным фоном (png, webp или avif)</span>
+<span class="k">const</span> coin = <span class="k">await</span> Assets.load(<span class="s">'coin.avif'</span>);
+
+<span class="k">const</span> fx = <span class="k">new</span> FireCoinWin({ coin, diameter: <span class="n">400</span>, density: <span class="n">1</span> });
+fx.position.set(app.screen.width / <span class="n">2</span>, app.screen.height / <span class="n">2</span>);
+app.stage.addChild(fx);
+
+fx.warmUp(<span class="n">1</span>);   <span class="c">// огненное кольцо горит уже на первом кадре</span>
+app.ticker.add((ticker) =&gt; fx.update(ticker.deltaMS / <span class="n">1000</span>));
+
+<span class="c">// выпал выигрыш на этом символе</span>
+fx.play();
+
+<span class="c">// символ ушёл с экрана</span>
+<span class="c">// fx.destroy();</span></pre>
+    </div>
+    <div class="code">
+      <div class="code-head"><div><div class="name">fire-coin-win.js</div><div class="meta">343 строк · 17 КБ, в gzip 6 КБ</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
+      <pre id="code-module" class="tall"><span class="c">// fire-coin-win.js — огненный выигрыш вокруг круглого символа. Pixi 8.</span>
+<span class="c">// Символ — одна статичная текстура, он стоит на месте. Огненное кольцо, взрыв искр,</span>
+<span class="c">// ударные волны, горящий край, блик и лучи считаются частицами каждый кадр.</span>
+<span class="c">// Текстуры частиц рисуются кодом один раз и общие для всех экземпляров.</span>
+<span class="k">import</span> { Container, Sprite, Texture, ParticleContainer, Particle, Graphics } <span class="k">from</span> <span class="s">'pixi.js'</span>;
+
+<span class="k">const</span> clamp01 = (v) =&gt; (v &lt; <span class="n">0</span> ? <span class="n">0</span> : v &gt; <span class="n">1</span> ? <span class="n">1</span> : v);
+<span class="k">const</span> easeOutCubic = (t) =&gt; <span class="n">1</span> - Math.pow(<span class="n">1</span> - t, <span class="n">3</span>);
+<span class="k">const</span> easeInOut = (t) =&gt; (t &lt; <span class="n">0.5</span> ? <span class="n">4</span> * t * t * t : <span class="n">1</span> - Math.pow(-<span class="n">2</span> * t + <span class="n">2</span>, <span class="n">3</span>) / <span class="n">2</span>);
+
+<span class="c">// цвет по жизни частицы: 0..1 -&gt; 0xRRGGBB</span>
+<span class="k">function</span> ramp(stops) {
+  <span class="k">return</span> (t) =&gt; {
+    <span class="k">let</span> i = <span class="n">0</span>;
+    <span class="k">while</span> (i &lt; stops.length - <span class="n">2</span> &amp;&amp; t &gt; stops[i + <span class="n">1</span>][<span class="n">0</span>]) i++;
+    <span class="k">const</span> [t0, a] = stops[i], [t1, b] = stops[i + <span class="n">1</span>];
+    <span class="k">const</span> k = clamp01((t - t0) / (t1 - t0));
+    <span class="k">const</span> r = a[<span class="n">0</span>] + (b[<span class="n">0</span>] - a[<span class="n">0</span>]) * k, g = a[<span class="n">1</span>] + (b[<span class="n">1</span>] - a[<span class="n">1</span>]) * k, bl = a[<span class="n">2</span>] + (b[<span class="n">2</span>] - a[<span class="n">2</span>]) * k;
+    <span class="k">return</span> ((r * <span class="n">255</span>) &lt;&lt; <span class="n">16</span>) | ((g * <span class="n">255</span>) &lt;&lt; <span class="n">8</span>) | (bl * <span class="n">255</span>);
+  };
+}
+<span class="k">const</span> FIRE = ramp([[<span class="n">0</span>, [<span class="n">1</span>, <span class="n">0.97</span>, <span class="n">0.82</span>]], [<span class="n">0.25</span>, [<span class="n">1</span>, <span class="n">0.78</span>, <span class="n">0.32</span>]], [<span class="n">0.6</span>, [<span class="n">1</span>, <span class="n">0.42</span>, <span class="n">0.08</span>]], [<span class="n">1</span>, [<span class="n">0.55</span>, <span class="n">0.08</span>, <span class="n">0.02</span>]]]);
+<span class="k">const</span> SPARK = ramp([[<span class="n">0</span>, [<span class="n">1</span>, <span class="n">1</span>, <span class="n">0.92</span>]], [<span class="n">0.4</span>, [<span class="n">1</span>, <span class="n">0.85</span>, <span class="n">0.4</span>]], [<span class="n">1</span>, [<span class="n">1</span>, <span class="n">0.38</span>, <span class="n">0.06</span>]]]);
+<span class="k">const</span> EMBER = ramp([[<span class="n">0</span>, [<span class="n">1</span>, <span class="n">0.8</span>, <span class="n">0.45</span>]], [<span class="n">1</span>, [<span class="n">1</span>, <span class="n">0.35</span>, <span class="n">0.05</span>]]]);
+
+<span class="c">// ---------------------------------------------------------------- процедурные текстуры (один раз на приложение)</span>
+<span class="k">let</span> TEX = <span class="k">null</span>;
+<span class="k">function</span> canvasTex(w, h, draw) {
+  <span class="k">const</span> c = document.createElement(<span class="s">'canvas'</span>);
+  c.width = w; c.height = h;
+  draw(c.getContext(<span class="s">'2d'</span>), w, h);
+  <span class="k">return</span> Texture.<span class="k">from</span>(c);
+}
+<span class="k">function</span> textures() {
+  <span class="k">if</span> (TEX) <span class="k">return</span> TEX;
+  <span class="k">const</span> radial = (g, x, y, r0, r1, stops) =&gt; {
+    <span class="k">const</span> gr = g.createRadialGradient(x, y, r0, x, y, r1);
+    <span class="k">for</span> (<span class="k">const</span> [o, c] <span class="k">of</span> stops) gr.addColorStop(o, c);
+    <span class="k">return</span> gr;
+  };
+  TEX = {
+    soft: canvasTex(<span class="n">64</span>, <span class="n">64</span>, (g, w) =&gt; {
+      g.fillStyle = radial(g, w / <span class="n">2</span>, w / <span class="n">2</span>, <span class="n">0</span>, w / <span class="n">2</span>, [[<span class="n">0</span>, <span class="s">'rgba(255,255,255,1)'</span>], [<span class="n">0.25</span>, <span class="s">'rgba(255,255,255,0.75)'</span>], [<span class="n">0.6</span>, <span class="s">'rgba(255,255,255,0.18)'</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+      g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, w);
+    }),
+    flame: canvasTex(<span class="n">64</span>, <span class="n">96</span>, (g, w, h) =&gt; {
+      g.fillStyle = radial(g, w / <span class="n">2</span>, h * <span class="n">0.62</span>, <span class="n">0</span>, w * <span class="n">0.5</span>, [[<span class="n">0</span>, <span class="s">'rgba(255,255,255,0.95)'</span>], [<span class="n">0.5</span>, <span class="s">'rgba(255,255,255,0.35)'</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+      g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, h);
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, h * <span class="n">0.62</span>, <span class="n">0</span>, <span class="n">0</span>);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'rgba(255,255,255,0.35)'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>);
+      g.fillStyle = lg; g.beginPath(); g.ellipse(w / <span class="n">2</span>, h * <span class="n">0.4</span>, w * <span class="n">0.22</span>, h * <span class="n">0.36</span>, <span class="n">0</span>, <span class="n">0</span>, Math.PI * <span class="n">2</span>); g.fill();
+    }),
+    streak: canvasTex(<span class="n">128</span>, <span class="n">24</span>, (g, w, h) =&gt; {
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, <span class="n">0</span>, w, <span class="n">0</span>);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'rgba(255,255,255,0)'</span>); lg.addColorStop(<span class="n">0.75</span>, <span class="s">'rgba(255,255,255,0.7)'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'rgba(255,255,255,1)'</span>);
+      g.fillStyle = lg;
+      g.beginPath(); g.moveTo(<span class="n">0</span>, h / <span class="n">2</span>); g.quadraticCurveTo(w * <span class="n">0.7</span>, h * <span class="n">0.12</span>, w, h / <span class="n">2</span>); g.quadraticCurveTo(w * <span class="n">0.7</span>, h * <span class="n">0.88</span>, <span class="n">0</span>, h / <span class="n">2</span>); g.fill();
+    }),
+    ring: canvasTex(<span class="n">256</span>, <span class="n">256</span>, (g, w) =&gt; {
+      g.fillStyle = radial(g, w / <span class="n">2</span>, w / <span class="n">2</span>, w * <span class="n">0.36</span>, w * <span class="n">0.5</span>, [[<span class="n">0</span>, <span class="s">'rgba(255,255,255,0)'</span>], [<span class="n">0.55</span>, <span class="s">'rgba(255,255,255,0.15)'</span>], [<span class="n">0.82</span>, <span class="s">'rgba(255,255,255,1)'</span>], [<span class="n">0.9</span>, <span class="s">'rgba(255,255,255,0.35)'</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+      g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, w);
+    }),
+    rays: canvasTex(<span class="n">256</span>, <span class="n">256</span>, (g, w) =&gt; {
+      g.translate(w / <span class="n">2</span>, w / <span class="n">2</span>);
+      <span class="k">const</span> n = <span class="n">22</span>;
+      <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; n; i++) {
+        <span class="k">const</span> a = (i / n) * Math.PI * <span class="n">2</span>, half = i % <span class="n">2</span> ? <span class="n">0.035</span> : <span class="n">0.07</span>;
+        g.fillStyle = radial(g, <span class="n">0</span>, <span class="n">0</span>, w * <span class="n">0.05</span>, w * <span class="n">0.5</span>, [[<span class="n">0</span>, <span class="s">`rgba(255,255,255,${i % 2 ? 0.55 : 0.9})`</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+        g.beginPath(); g.moveTo(<span class="n">0</span>, <span class="n">0</span>); g.arc(<span class="n">0</span>, <span class="n">0</span>, w * <span class="n">0.5</span>, a - half, a + half); g.closePath(); g.fill();
+      }
+    }),
+    glow: canvasTex(<span class="n">256</span>, <span class="n">256</span>, (g, w) =&gt; {
+      g.fillStyle = radial(g, w / <span class="n">2</span>, w / <span class="n">2</span>, <span class="n">0</span>, w / <span class="n">2</span>, [[<span class="n">0</span>, <span class="s">'rgba(255,214,140,0.95)'</span>], [<span class="n">0.35</span>, <span class="s">'rgba(255,150,40,0.45)'</span>], [<span class="n">0.7</span>, <span class="s">'rgba(200,60,10,0.12)'</span>], [<span class="n">1</span>, <span class="s">'rgba(120,20,0,0)'</span>]]);
+      g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, w);
+    }),
+    band: canvasTex(<span class="n">96</span>, <span class="n">512</span>, (g, w, h) =&gt; {
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, <span class="n">0</span>, w, <span class="n">0</span>);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'rgba(255,255,255,0)'</span>); lg.addColorStop(<span class="n">0.5</span>, <span class="s">'rgba(255,250,235,0.85)'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>);
+      g.fillStyle = lg; g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, h);
+    }),
+  };
+  <span class="k">return</span> TEX;
+}
+
+<span class="c">// пул частиц фиксированного размера: без аллокаций во время анимации.</span>
+<span class="c">// В контейнер каждый кадр попадают только живые частицы, поэтому запас пула ничего не стоит.</span>
+<span class="k">function</span> makePool(tex, n) {
+  <span class="k">const</span> pc = <span class="k">new</span> ParticleContainer({
+    texture: tex,
+    dynamicProperties: { position: <span class="k">true</span>, rotation: <span class="k">true</span>, vertex: <span class="k">true</span>, color: <span class="k">true</span>, uvs: <span class="k">false</span> },
+  });
+  pc.blendMode = <span class="s">'add'</span>;
+  <span class="k">const</span> items = [];
+  <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; n; i++) {
+    <span class="k">const</span> p = <span class="k">new</span> Particle({ texture: tex, anchorX: <span class="n">0.5</span>, anchorY: <span class="n">0.5</span>, alpha: <span class="n">0</span> });
+    p.scaleX = p.scaleY = <span class="n">0</span>;
+    items.push({ p, life: <span class="n">0</span>, max: <span class="n">1</span>, alive: <span class="k">false</span>, x: <span class="n">0</span>, y: <span class="n">0</span>, vx: <span class="n">0</span>, vy: <span class="n">0</span>, s: <span class="n">1</span>, r: <span class="n">0</span>, ph: <span class="n">0</span> });
+  }
+  <span class="k">return</span> { pc, items, next: <span class="n">0</span>, alive: <span class="n">0</span> };
+}
+
+<span class="k">export</span> <span class="k">class</span> FireCoinWin <span class="k">extends</span> Container {
+  <span class="c">/**
+   * @param {object} o
+   * @param {Texture} o.coin          текстура круглого символа с прозрачным фоном
+   * @param {number}  [o.diameter=400] диаметр символа в пикселях сцены
+   * @param {number}  [o.density=1]    множитель частиц: 0.5 — экономно, 2 — максимум (можно менять на лету)
+   * @param {boolean} [o.loop=false]   повторять выигрыш каждые 4,2 с
+   * @param {boolean} [o.embers=true]  угольки, поднимающиеся вокруг символа
+   * @param {number}  [o.seed=7]       зерно случайности: одинаковый выигрыш при каждом play()
+   */</span>
+  constructor({ coin, diameter = <span class="n">400</span>, density = <span class="n">1</span>, loop = <span class="k">false</span>, embers = <span class="k">true</span>, seed = <span class="n">7</span> } = {}) {
+    <span class="k">super</span>();
+    <span class="k">const</span> T = textures();
+    <span class="k">this</span>.density = density;
+    <span class="k">this</span>.loop = loop;
+    <span class="k">this</span>.R = diameter / <span class="n">2</span>;
+    <span class="k">this</span>._seed0 = seed;
+    <span class="k">this</span>._seed = seed;
+    <span class="k">this</span>._t = <span class="n">0</span>;
+    <span class="k">this</span>._win = -<span class="n">1</span>;
+    <span class="k">this</span>._exploded = <span class="k">false</span>;
+    <span class="k">this</span>._acc = { flame: <span class="n">0</span>, rim: <span class="n">0</span>, ember: <span class="n">0</span> };
+    <span class="k">this</span>._shake = <span class="n">0</span>;
+    <span class="k">this</span>._embersOn = embers;
+
+    <span class="c">// огонь за символом и перед ним в двух слоях; трясутся только они, символ неподвижен</span>
+    <span class="k">const</span> back = <span class="k">new</span> Container();
+    <span class="k">const</span> front = <span class="k">new</span> Container();
+    <span class="k">this</span>._layers = [back, front];
+
+    <span class="k">this</span>._rays = <span class="k">new</span> Sprite(T.rays); <span class="k">this</span>._rays.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._rays.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._rays.tint = <span class="n">0xffb347</span>;
+    <span class="k">this</span>._glow = <span class="k">new</span> Sprite(T.glow); <span class="k">this</span>._glow.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._glow.blendMode = <span class="s">'add'</span>;
+    <span class="k">this</span>._embers = makePool(T.soft, <span class="n">220</span>);
+    <span class="k">this</span>._back = makePool(T.flame, <span class="n">2400</span>);
+    back.addChild(<span class="k">this</span>._rays, <span class="k">this</span>._glow, <span class="k">this</span>._embers.pc, <span class="k">this</span>._back.pc);
+
+    <span class="k">const</span> wrap = <span class="k">new</span> Container();
+    <span class="k">this</span>._coin = <span class="k">new</span> Sprite(coin); <span class="k">this</span>._coin.anchor.set(<span class="n">0.5</span>);
+    <span class="k">this</span>._coin.scale.set(diameter / coin.width);
+    <span class="k">this</span>._mask = <span class="k">new</span> Graphics().circle(<span class="n">0</span>, <span class="n">0</span>, <span class="k">this</span>.R * <span class="n">0.965</span>).fill(<span class="n">0xffffff</span>);
+    <span class="k">this</span>._band = <span class="k">new</span> Sprite(T.band); <span class="k">this</span>._band.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._band.blendMode = <span class="s">'add'</span>;
+    <span class="k">this</span>._band.rotation = <span class="n">0.42</span>; <span class="k">this</span>._band.height = diameter * <span class="n">1.6</span>; <span class="k">this</span>._band.width = diameter * <span class="n">0.3</span>;
+    <span class="k">this</span>._band.mask = <span class="k">this</span>._mask; <span class="k">this</span>._band.visible = <span class="k">false</span>;
+    wrap.addChild(<span class="k">this</span>._coin, <span class="k">this</span>._mask, <span class="k">this</span>._band);
+
+    <span class="k">this</span>._front = makePool(T.flame, <span class="n">2400</span>);
+    <span class="k">this</span>._burst = makePool(T.flame, <span class="n">1400</span>);
+    <span class="k">this</span>._sparks = makePool(T.streak, <span class="n">1800</span>);
+    front.addChild(<span class="k">this</span>._front.pc, <span class="k">this</span>._burst.pc, <span class="k">this</span>._sparks.pc);
+    <span class="k">this</span>._rings = [<span class="n">0</span>, <span class="n">1</span>].map(() =&gt; { <span class="k">const</span> s = <span class="k">new</span> Sprite(T.ring); s.anchor.set(<span class="n">0.5</span>); s.blendMode = <span class="s">'add'</span>; s.alpha = <span class="n">0</span>; front.addChild(s); <span class="k">return</span> s; });
+    <span class="k">this</span>._flash = <span class="k">new</span> Sprite(T.glow); <span class="k">this</span>._flash.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._flash.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._flash.alpha = <span class="n">0</span>;
+    <span class="k">this</span>._flash.scale.set((diameter * <span class="n">2.6</span>) / <span class="n">256</span>);
+    front.addChild(<span class="k">this</span>._flash);
+    <span class="k">this</span>.addChild(back, wrap, front);
+    <span class="k">this</span>._pools = [<span class="k">this</span>._embers, <span class="k">this</span>._back, <span class="k">this</span>._front, <span class="k">this</span>._burst, <span class="k">this</span>._sparks];
+  }
+
+  <span class="c">/** Запустить выигрыш с начала. */</span>
+  play() { <span class="k">this</span>._win = <span class="k">this</span>._t; <span class="k">this</span>._seed = <span class="k">this</span>._seed0; <span class="k">this</span>._exploded = <span class="k">false</span>; }
+
+  <span class="c">/** Сколько частиц сейчас живо. */</span>
+  get particleCount() { <span class="k">return</span> <span class="k">this</span>._pools.reduce((s, p) =&gt; s + p.alive, <span class="n">0</span>); }
+
+  <span class="c">/** Быстро прокрутить симуляцию вперёд, например чтобы кольцо было полным с первого кадра. */</span>
+  warmUp(seconds, step = <span class="n">1</span> / <span class="n">60</span>) { <span class="k">for</span> (<span class="k">let</span> t = <span class="n">0</span>; t &lt; seconds; t += step) <span class="k">this</span>.update(step); }
+
+  <span class="c">// детерминированный генератор: при каждом play() выигрыш выглядит одинаково</span>
+  _rnd() { <span class="k">let</span> s = (<span class="k">this</span>._seed = (<span class="k">this</span>._seed + <span class="n">0x6d2b79f5</span>) | <span class="n">0</span>); <span class="k">let</span> t = Math.imul(s ^ (s &gt;&gt;&gt; <span class="n">15</span>), <span class="n">1</span> | s); t = (t + Math.imul(t ^ (t &gt;&gt;&gt; <span class="n">7</span>), <span class="n">61</span> | t)) ^ t; <span class="k">return</span> ((t ^ (t &gt;&gt;&gt; <span class="n">14</span>)) &gt;&gt;&gt; <span class="n">0</span>) / <span class="n">4294967296</span>; }
+  _r(a, b) { <span class="k">return</span> a + (b - a) * <span class="k">this</span>._rnd(); }
+
+  _spawn(pl) {
+    <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; pl.items.length; i++) {
+      <span class="k">const</span> it = pl.items[pl.next];
+      pl.next = (pl.next + <span class="n">1</span>) % pl.items.length;
+      <span class="k">if</span> (!it.alive) { it.alive = <span class="k">true</span>; it.life = <span class="n">0</span>; <span class="k">return</span> it; }
+    }
+    <span class="k">return</span> <span class="k">null</span>;
+  }
+
+  _orbit(phi, a) {
+    <span class="k">const</span> TILT = -<span class="n">0.32</span>, B = <span class="n">0.46</span>;
+    <span class="k">const</span> ex = Math.cos(phi) * a, ey = Math.sin(phi) * a * B;
+    <span class="k">return</span> [ex * Math.cos(TILT) - ey * Math.sin(TILT), ex * Math.sin(TILT) + ey * Math.cos(TILT)];
+  }
+
+  _emitFlames(dt, rate) {
+    <span class="k">this</span>._acc.flame += rate * dt * <span class="k">this</span>.density;
+    <span class="k">while</span> (<span class="k">this</span>._acc.flame &gt;= <span class="n">1</span>) {
+      <span class="k">this</span>._acc.flame -= <span class="n">1</span>;
+      <span class="k">const</span> head = <span class="k">this</span>._rnd() &lt; <span class="n">0.5</span> ? <span class="n">0</span> : Math.PI;
+      <span class="k">const</span> phi = <span class="k">this</span>._t * <span class="n">2.6</span> + head - Math.pow(<span class="k">this</span>._rnd(), <span class="n">1.6</span>) * <span class="n">1.1</span>;   <span class="c">// шлейф отстаёт от головы кометы</span>
+      <span class="k">const</span> a = <span class="k">this</span>.R * <span class="k">this</span>._r(<span class="n">1.12</span>, <span class="n">1.42</span>);
+      <span class="k">const</span> [x, y] = <span class="k">this</span>._orbit(phi, a);
+      <span class="k">const</span> it = <span class="k">this</span>._spawn(Math.sin(phi) &gt; <span class="n">0</span> ? <span class="k">this</span>._front : <span class="k">this</span>._back);
+      <span class="k">if</span> (!it) <span class="k">continue</span>;
+      it.x = x + <span class="k">this</span>._r(-<span class="n">20</span>, <span class="n">20</span>); it.y = y + <span class="k">this</span>._r(-<span class="n">20</span>, <span class="n">20</span>);
+      <span class="k">const</span> [x2, y2] = <span class="k">this</span>._orbit(phi + <span class="n">0.05</span>, a);
+      <span class="k">const</span> sp = <span class="k">this</span>._r(<span class="n">60</span>, <span class="n">160</span>), tl = Math.hypot(x2 - x, y2 - y) || <span class="n">1</span>;
+      it.vx = ((x2 - x) / tl) * sp; it.vy = ((y2 - y) / tl) * sp - <span class="k">this</span>._r(<span class="n">30</span>, <span class="n">90</span>);
+      it.max = <span class="k">this</span>._r(<span class="n">0.5</span>, <span class="n">1.0</span>); it.s = <span class="k">this</span>._r(<span class="n">0.8</span>, <span class="n">1.6</span>) * <span class="k">this</span>.R / <span class="n">200</span>; it.r = <span class="k">this</span>._r(-<span class="n">0.4</span>, <span class="n">0.4</span>); it.ph = <span class="k">this</span>._r(<span class="n">0</span>, <span class="n">6.28</span>);
+    }
+  }
+
+  _emitRim(dt, rate) {
+    <span class="k">this</span>._acc.rim += rate * dt * <span class="k">this</span>.density;
+    <span class="k">while</span> (<span class="k">this</span>._acc.rim &gt;= <span class="n">1</span>) {
+      <span class="k">this</span>._acc.rim -= <span class="n">1</span>;
+      <span class="k">const</span> it = <span class="k">this</span>._spawn(<span class="k">this</span>._back);
+      <span class="k">if</span> (!it) <span class="k">continue</span>;
+      <span class="k">const</span> a = <span class="k">this</span>._r(<span class="n">0</span>, Math.PI * <span class="n">2</span>), r = <span class="k">this</span>.R * <span class="k">this</span>._r(<span class="n">0.97</span>, <span class="n">1.06</span>);
+      it.x = Math.cos(a) * r; it.y = Math.sin(a) * r;
+      it.vx = Math.cos(a) * <span class="k">this</span>._r(<span class="n">30</span>, <span class="n">90</span>); it.vy = Math.sin(a) * <span class="k">this</span>._r(<span class="n">30</span>, <span class="n">90</span>) - <span class="k">this</span>._r(<span class="n">70</span>, <span class="n">170</span>);
+      it.max = <span class="k">this</span>._r(<span class="n">0.4</span>, <span class="n">0.8</span>); it.s = <span class="k">this</span>._r(<span class="n">0.7</span>, <span class="n">1.3</span>) * <span class="k">this</span>.R / <span class="n">200</span>; it.r = <span class="n">0</span>; it.ph = <span class="k">this</span>._r(<span class="n">0</span>, <span class="n">6.28</span>);
+    }
+  }
+
+  _emitEmbers(dt) {
+    <span class="k">if</span> (!<span class="k">this</span>._embersOn) <span class="k">return</span>;
+    <span class="k">this</span>._acc.ember += <span class="n">32</span> * dt * <span class="k">this</span>.density;
+    <span class="k">const</span> span = <span class="k">this</span>.R * <span class="n">1.75</span>;
+    <span class="k">while</span> (<span class="k">this</span>._acc.ember &gt;= <span class="n">1</span>) {
+      <span class="k">this</span>._acc.ember -= <span class="n">1</span>;
+      <span class="k">const</span> it = <span class="k">this</span>._spawn(<span class="k">this</span>._embers);
+      <span class="k">if</span> (!it) <span class="k">continue</span>;
+      it.x = <span class="k">this</span>._r(-span, span); it.y = span; it.vx = <span class="k">this</span>._r(-<span class="n">12</span>, <span class="n">12</span>); it.vy = <span class="k">this</span>._r(-<span class="n">110</span>, -<span class="n">45</span>);
+      it.max = <span class="k">this</span>._r(<span class="n">4</span>, <span class="n">8</span>); it.s = <span class="k">this</span>._r(<span class="n">0.05</span>, <span class="n">0.16</span>); it.ph = <span class="k">this</span>._r(<span class="n">0</span>, <span class="n">6.28</span>);
+    }
+  }
+
+  _explode() {
+    <span class="k">const</span> R = <span class="k">this</span>.R;
+    <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>, n = Math.round(<span class="n">420</span> * <span class="k">this</span>.density); i &lt; n; i++) {
+      <span class="k">const</span> it = <span class="k">this</span>._spawn(<span class="k">this</span>._sparks); <span class="k">if</span> (!it) <span class="k">break</span>;
+      <span class="k">const</span> a = <span class="k">this</span>._r(<span class="n">0</span>, Math.PI * <span class="n">2</span>), sp = <span class="k">this</span>._r(<span class="n">380</span>, <span class="n">1250</span>) * R / <span class="n">200</span>;
+      it.x = Math.cos(a) * R * <span class="n">0.85</span>; it.y = Math.sin(a) * R * <span class="n">0.85</span>;
+      it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp - <span class="k">this</span>._r(<span class="n">0</span>, <span class="n">220</span>);
+      it.max = <span class="k">this</span>._r(<span class="n">0.5</span>, <span class="n">1.35</span>); it.s = <span class="k">this</span>._r(<span class="n">0.28</span>, <span class="n">0.55</span>) * R / <span class="n">200</span>;
+    }
+    <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>, n = Math.round(<span class="n">320</span> * <span class="k">this</span>.density); i &lt; n; i++) {
+      <span class="k">const</span> it = <span class="k">this</span>._spawn(<span class="k">this</span>._burst); <span class="k">if</span> (!it) <span class="k">break</span>;
+      <span class="k">const</span> a = <span class="k">this</span>._r(<span class="n">0</span>, Math.PI * <span class="n">2</span>), sp = <span class="k">this</span>._r(<span class="n">90</span>, <span class="n">330</span>) * R / <span class="n">200</span>, r = R * <span class="k">this</span>._r(<span class="n">0.9</span>, <span class="n">1.05</span>);
+      it.x = Math.cos(a) * r; it.y = Math.sin(a) * r;
+      it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp - <span class="k">this</span>._r(<span class="n">20</span>, <span class="n">120</span>);
+      it.max = <span class="k">this</span>._r(<span class="n">0.55</span>, <span class="n">1.05</span>); it.s = <span class="k">this</span>._r(<span class="n">0.9</span>, <span class="n">1.7</span>) * R / <span class="n">200</span>; it.r = a + Math.PI / <span class="n">2</span>; it.ph = <span class="k">this</span>._r(<span class="n">0</span>, <span class="n">6.28</span>);
+    }
+  }
+
+  _stepPool(pl, dt, fn) {
+    <span class="k">const</span> list = pl.pc.particleChildren;
+    list.length = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">const</span> it <span class="k">of</span> pl.items) {
+      <span class="k">if</span> (!it.alive) <span class="k">continue</span>;
+      it.life += dt;
+      <span class="k">const</span> k = it.life / it.max;
+      <span class="k">if</span> (k &gt;= <span class="n">1</span>) { it.alive = <span class="k">false</span>; <span class="k">continue</span>; }
+      fn(it, k, dt);
+      list.push(it.p);
+    }
+    pl.alive = list.length;
+    pl.pc.update();
+  }
+
+  <span class="c">/** Вызывать каждый кадр. dt — секунды (в Pixi 8: ticker.deltaMS / 1000). */</span>
+  update(dt) {
+    dt = Math.min(dt, <span class="n">1</span> / <span class="n">30</span>);
+    <span class="k">this</span>._t += dt;
+    <span class="k">const</span> t = <span class="k">this</span>._t, R = <span class="k">this</span>.R, D = R * <span class="n">2</span>;
+    <span class="k">let</span> T = <span class="k">this</span>._win &gt;= <span class="n">0</span> ? t - <span class="k">this</span>._win : <span class="n">99</span>;
+    <span class="k">if</span> (<span class="k">this</span>.loop &amp;&amp; <span class="k">this</span>._win &gt;= <span class="n">0</span> &amp;&amp; T &gt; <span class="n">4.2</span>) { <span class="k">this</span>.play(); T = <span class="n">0</span>; }
+    <span class="k">const</span> winOn = T &lt; <span class="n">3.0</span>;
+    <span class="k">if</span> (T &gt;= <span class="n">0.18</span> &amp;&amp; !<span class="k">this</span>._exploded &amp;&amp; <span class="k">this</span>._win &gt;= <span class="n">0</span>) { <span class="k">this</span>._exploded = <span class="k">true</span>; <span class="k">this</span>._explode(); <span class="k">this</span>._shake = <span class="n">1</span>; }
+
+    <span class="k">this</span>._emitFlames(dt, winOn &amp;&amp; T &gt; <span class="n">0.18</span> ? <span class="n">900</span> : <span class="n">300</span>);
+    <span class="k">this</span>._emitRim(dt, winOn &amp;&amp; T &gt; <span class="n">0.18</span> &amp;&amp; T &lt; <span class="n">2.7</span> ? <span class="n">520</span> : <span class="n">0</span>);
+    <span class="k">this</span>._emitEmbers(dt);
+
+    <span class="k">const</span> flame = (it, k, dt) =&gt; {
+      it.vx *= <span class="n">1</span> - <span class="n">0.9</span> * dt; it.vy *= <span class="n">1</span> - <span class="n">0.9</span> * dt; it.vy -= <span class="n">60</span> * dt;
+      it.x += it.vx * dt + Math.sin(t * <span class="n">9</span> + it.ph) * <span class="n">18</span> * dt; it.y += it.vy * dt;
+      <span class="k">const</span> p = it.p, sz = it.s * Math.sin(Math.min(<span class="n">1</span>, k * <span class="n">1.6</span>) * Math.PI * <span class="n">0.5</span>) * (<span class="n">1</span> - k * <span class="n">0.55</span>);
+      p.x = it.x; p.y = it.y; p.scaleX = sz * <span class="n">0.8</span>; p.scaleY = sz * <span class="n">1.15</span>;
+      p.rotation = it.r + Math.sin(t * <span class="n">6</span> + it.ph) * <span class="n">0.25</span>;
+      p.tint = FIRE(k); p.alpha = Math.min(<span class="n">1</span>, k * <span class="n">6</span>) * (<span class="n">1</span> - k) * <span class="n">0.9</span>;
+    };
+    <span class="k">this</span>._stepPool(<span class="k">this</span>._back, dt, flame);
+    <span class="k">this</span>._stepPool(<span class="k">this</span>._front, dt, flame);
+    <span class="k">this</span>._stepPool(<span class="k">this</span>._burst, dt, (it, k, dt) =&gt; {
+      it.vx *= <span class="n">1</span> - <span class="n">1.6</span> * dt; it.vy *= <span class="n">1</span> - <span class="n">1.6</span> * dt; it.vy -= <span class="n">90</span> * dt;
+      it.x += it.vx * dt; it.y += it.vy * dt;
+      <span class="k">const</span> p = it.p, sz = it.s * (<span class="n">0.55</span> + k * <span class="n">0.9</span>) * (<span class="n">1</span> - k * <span class="n">0.3</span>);
+      p.x = it.x; p.y = it.y; p.scaleX = sz * <span class="n">0.85</span>; p.scaleY = sz * <span class="n">1.1</span>; p.rotation = it.r;
+      p.tint = FIRE(Math.min(<span class="n">1</span>, k * <span class="n">1.15</span>)); p.alpha = Math.min(<span class="n">1</span>, k * <span class="n">8</span>) * Math.pow(<span class="n">1</span> - k, <span class="n">1.4</span>) * <span class="n">0.75</span>;
+    });
+    <span class="k">this</span>._stepPool(<span class="k">this</span>._sparks, dt, (it, k, dt) =&gt; {
+      it.vx *= <span class="n">1</span> - <span class="n">2.1</span> * dt; it.vy *= <span class="n">1</span> - <span class="n">2.1</span> * dt; it.vy += <span class="n">820</span> * dt * R / <span class="n">200</span>;
+      it.x += it.vx * dt; it.y += it.vy * dt;
+      <span class="k">const</span> p = it.p, sp = Math.hypot(it.vx, it.vy);
+      p.x = it.x; p.y = it.y; p.rotation = Math.atan2(it.vy, it.vx);
+      p.scaleX = (<span class="n">0.18</span> + sp / (<span class="n">1100</span> * R / <span class="n">200</span>)) * it.s * <span class="n">2.2</span>; p.scaleY = it.s * (<span class="n">1</span> - k * <span class="n">0.6</span>);
+      p.tint = SPARK(k); p.alpha = k &lt; <span class="n">0.6</span> ? <span class="n">1</span> : (<span class="n">1</span> - k) / <span class="n">0.4</span>;
+    });
+    <span class="k">this</span>._stepPool(<span class="k">this</span>._embers, dt, (it, k, dt) =&gt; {
+      it.x += (it.vx + Math.sin(t * <span class="n">1.7</span> + it.ph) * <span class="n">22</span>) * dt; it.y += it.vy * dt;
+      <span class="k">const</span> p = it.p;
+      p.x = it.x; p.y = it.y; p.scaleX = p.scaleY = it.s * (<span class="n">1</span> - k * <span class="n">0.5</span>);
+      p.tint = EMBER(k); p.alpha = (<span class="n">0.35</span> + <span class="n">0.65</span> * Math.abs(Math.sin(t * <span class="n">7</span> + it.ph * <span class="n">3</span>))) * Math.min(<span class="n">1</span>, k * <span class="n">8</span>) * (<span class="n">1</span> - k);
+    });
+
+    <span class="c">// блик</span>
+    <span class="k">if</span> (T &gt; <span class="n">1.85</span> &amp;&amp; T &lt; <span class="n">2.5</span>) {
+      <span class="k">const</span> u = (T - <span class="n">1.85</span>) / <span class="n">0.65</span>;
+      <span class="k">this</span>._band.visible = <span class="k">true</span>; <span class="k">this</span>._band.x = (-<span class="n">1.1</span> + <span class="n">2.2</span> * easeInOut(u)) * R; <span class="k">this</span>._band.alpha = Math.sin(u * Math.PI);
+    } <span class="k">else</span> <span class="k">this</span>._band.visible = <span class="k">false</span>;
+
+    <span class="c">// лучи, свечение, ударные волны, вспышка</span>
+    <span class="k">const</span> pop = T &gt;= <span class="n">0.18</span> ? Math.max(<span class="n">0</span>, <span class="n">1</span> - (T - <span class="n">0.18</span>) / <span class="n">1.6</span>) : <span class="n">0</span>;
+    <span class="k">this</span>._rays.rotation = t * <span class="n">0.22</span>;
+    <span class="k">this</span>._rays.scale.set(((<span class="n">1.32</span> + <span class="n">0.25</span> * pop) * D * <span class="n">1.8</span>) / <span class="n">256</span>);
+    <span class="k">this</span>._rays.alpha = <span class="n">0.16</span> + <span class="n">0.08</span> * Math.sin(t * <span class="n">2.3</span>) + <span class="n">0.5</span> * pop;
+    <span class="k">this</span>._glow.scale.set((D * <span class="n">2.1</span> + <span class="n">27</span> * Math.sin(t * <span class="n">3.1</span>) * (R / <span class="n">200</span>) + <span class="n">220</span> * pop * (R / <span class="n">200</span>)) / <span class="n">256</span>);
+    <span class="k">this</span>._glow.alpha = <span class="n">0.75</span> + <span class="n">0.25</span> * pop;
+    <span class="k">this</span>._rings.forEach((s, i) =&gt; {
+      <span class="k">const</span> u = (T - (<span class="n">0.18</span> + i * <span class="n">0.09</span>)) / (<span class="n">0.55</span> + i * <span class="n">0.35</span>);
+      <span class="k">if</span> (u &lt; <span class="n">0</span> || u &gt; <span class="n">1</span>) { s.alpha = <span class="n">0</span>; <span class="k">return</span>; }
+      s.scale.set(((<span class="n">0.55</span> + <span class="n">2.4</span> * easeOutCubic(u)) * D) / <span class="n">256</span>);
+      s.alpha = (<span class="n">1</span> - u) * (i ? <span class="n">0.55</span> : <span class="n">0.95</span>);
+      s.tint = i ? <span class="n">0xff9a3c</span> : <span class="n">0xffe3a0</span>;
+    });
+    <span class="k">this</span>._flash.alpha = T &gt;= <span class="n">0.18</span> &amp;&amp; T &lt; <span class="n">0.5</span> ? (<span class="n">1</span> - (T - <span class="n">0.18</span>) / <span class="n">0.32</span>) * <span class="n">0.55</span> : <span class="n">0</span>;
+
+    <span class="c">// тряска огня на ударе: символ и позиция самого эффекта не двигаются</span>
+    <span class="k">this</span>._shake = Math.max(<span class="n">0</span>, <span class="k">this</span>._shake - dt * <span class="n">2.8</span>);
+    <span class="k">const</span> sh = <span class="k">this</span>._shake * <span class="k">this</span>._shake * <span class="n">14</span> * (R / <span class="n">200</span>);
+    <span class="k">const</span> sx = <span class="k">this</span>._r(-sh, sh), sy = <span class="k">this</span>._r(-sh, sh);
+    <span class="k">for</span> (<span class="k">const</span> l <span class="k">of</span> <span class="k">this</span>._layers) l.position.set(sx, sy);
+  }
+
+  destroy(options) {
+    <span class="c">// общие текстуры не уничтожаем: их используют другие экземпляры</span>
+    <span class="k">super</span>.destroy({ children: <span class="k">true</span>, texture: <span class="k">false</span>, textureSource: <span class="k">false</span>, ...(<span class="k">typeof</span> options === <span class="s">'object'</span> ? options : {}) });
+  }
+}</pre>
+    </div>
+    <p class="note">Проверено на Pixi 8.22. Эффект рисует монету сам, поэтому исходный спрайт символа на время выигрыша прячь. Текстуры частиц создаются один раз и общие для всех экземпляров. Для Pixi 7 нужна адаптация: там другой ParticleContainer. Модуль, демо и все замеры — в репозитории <a href="https://github.com/vapes/Video-to-particles">vapes/Video-to-particles</a>.</p>
   </section>
 </main>
+
+<script type="module">
+// ----- the module exactly as shown above (only the pixi.js import points to the CDN here)
+// fire-coin-win.js — огненный выигрыш вокруг круглого символа. Pixi 8.
+// Символ — одна статичная текстура, он стоит на месте. Огненное кольцо, взрыв искр,
+// ударные волны, горящий край, блик и лучи считаются частицами каждый кадр.
+// Текстуры частиц рисуются кодом один раз и общие для всех экземпляров.
+import { Container, Sprite, Texture, ParticleContainer, Particle, Graphics } from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
+
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+// цвет по жизни частицы: 0..1 -> 0xRRGGBB
+function ramp(stops) {
+  return (t) => {
+    let i = 0;
+    while (i < stops.length - 2 && t > stops[i + 1][0]) i++;
+    const [t0, a] = stops[i], [t1, b] = stops[i + 1];
+    const k = clamp01((t - t0) / (t1 - t0));
+    const r = a[0] + (b[0] - a[0]) * k, g = a[1] + (b[1] - a[1]) * k, bl = a[2] + (b[2] - a[2]) * k;
+    return ((r * 255) << 16) | ((g * 255) << 8) | (bl * 255);
+  };
+}
+const FIRE = ramp([[0, [1, 0.97, 0.82]], [0.25, [1, 0.78, 0.32]], [0.6, [1, 0.42, 0.08]], [1, [0.55, 0.08, 0.02]]]);
+const SPARK = ramp([[0, [1, 1, 0.92]], [0.4, [1, 0.85, 0.4]], [1, [1, 0.38, 0.06]]]);
+const EMBER = ramp([[0, [1, 0.8, 0.45]], [1, [1, 0.35, 0.05]]]);
+
+// ---------------------------------------------------------------- процедурные текстуры (один раз на приложение)
+let TEX = null;
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  return Texture.from(c);
+}
+function textures() {
+  if (TEX) return TEX;
+  const radial = (g, x, y, r0, r1, stops) => {
+    const gr = g.createRadialGradient(x, y, r0, x, y, r1);
+    for (const [o, c] of stops) gr.addColorStop(o, c);
+    return gr;
+  };
+  TEX = {
+    soft: canvasTex(64, 64, (g, w) => {
+      g.fillStyle = radial(g, w / 2, w / 2, 0, w / 2, [[0, 'rgba(255,255,255,1)'], [0.25, 'rgba(255,255,255,0.75)'], [0.6, 'rgba(255,255,255,0.18)'], [1, 'rgba(255,255,255,0)']]);
+      g.fillRect(0, 0, w, w);
+    }),
+    flame: canvasTex(64, 96, (g, w, h) => {
+      g.fillStyle = radial(g, w / 2, h * 0.62, 0, w * 0.5, [[0, 'rgba(255,255,255,0.95)'], [0.5, 'rgba(255,255,255,0.35)'], [1, 'rgba(255,255,255,0)']]);
+      g.fillRect(0, 0, w, h);
+      const lg = g.createLinearGradient(0, h * 0.62, 0, 0);
+      lg.addColorStop(0, 'rgba(255,255,255,0.35)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = lg; g.beginPath(); g.ellipse(w / 2, h * 0.4, w * 0.22, h * 0.36, 0, 0, Math.PI * 2); g.fill();
+    }),
+    streak: canvasTex(128, 24, (g, w, h) => {
+      const lg = g.createLinearGradient(0, 0, w, 0);
+      lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.75, 'rgba(255,255,255,0.7)'); lg.addColorStop(1, 'rgba(255,255,255,1)');
+      g.fillStyle = lg;
+      g.beginPath(); g.moveTo(0, h / 2); g.quadraticCurveTo(w * 0.7, h * 0.12, w, h / 2); g.quadraticCurveTo(w * 0.7, h * 0.88, 0, h / 2); g.fill();
+    }),
+    ring: canvasTex(256, 256, (g, w) => {
+      g.fillStyle = radial(g, w / 2, w / 2, w * 0.36, w * 0.5, [[0, 'rgba(255,255,255,0)'], [0.55, 'rgba(255,255,255,0.15)'], [0.82, 'rgba(255,255,255,1)'], [0.9, 'rgba(255,255,255,0.35)'], [1, 'rgba(255,255,255,0)']]);
+      g.fillRect(0, 0, w, w);
+    }),
+    rays: canvasTex(256, 256, (g, w) => {
+      g.translate(w / 2, w / 2);
+      const n = 22;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2, half = i % 2 ? 0.035 : 0.07;
+        g.fillStyle = radial(g, 0, 0, w * 0.05, w * 0.5, [[0, `rgba(255,255,255,${i % 2 ? 0.55 : 0.9})`], [1, 'rgba(255,255,255,0)']]);
+        g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, w * 0.5, a - half, a + half); g.closePath(); g.fill();
+      }
+    }),
+    glow: canvasTex(256, 256, (g, w) => {
+      g.fillStyle = radial(g, w / 2, w / 2, 0, w / 2, [[0, 'rgba(255,214,140,0.95)'], [0.35, 'rgba(255,150,40,0.45)'], [0.7, 'rgba(200,60,10,0.12)'], [1, 'rgba(120,20,0,0)']]);
+      g.fillRect(0, 0, w, w);
+    }),
+    band: canvasTex(96, 512, (g, w, h) => {
+      const lg = g.createLinearGradient(0, 0, w, 0);
+      lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.5, 'rgba(255,250,235,0.85)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = lg; g.fillRect(0, 0, w, h);
+    }),
+  };
+  return TEX;
+}
+
+// пул частиц фиксированного размера: без аллокаций во время анимации.
+// В контейнер каждый кадр попадают только живые частицы, поэтому запас пула ничего не стоит.
+function makePool(tex, n) {
+  const pc = new ParticleContainer({
+    texture: tex,
+    dynamicProperties: { position: true, rotation: true, vertex: true, color: true, uvs: false },
+  });
+  pc.blendMode = 'add';
+  const items = [];
+  for (let i = 0; i < n; i++) {
+    const p = new Particle({ texture: tex, anchorX: 0.5, anchorY: 0.5, alpha: 0 });
+    p.scaleX = p.scaleY = 0;
+    items.push({ p, life: 0, max: 1, alive: false, x: 0, y: 0, vx: 0, vy: 0, s: 1, r: 0, ph: 0 });
+  }
+  return { pc, items, next: 0, alive: 0 };
+}
+
+export class FireCoinWin extends Container {
+  /**
+   * @param {object} o
+   * @param {Texture} o.coin          текстура круглого символа с прозрачным фоном
+   * @param {number}  [o.diameter=400] диаметр символа в пикселях сцены
+   * @param {number}  [o.density=1]    множитель частиц: 0.5 — экономно, 2 — максимум (можно менять на лету)
+   * @param {boolean} [o.loop=false]   повторять выигрыш каждые 4,2 с
+   * @param {boolean} [o.embers=true]  угольки, поднимающиеся вокруг символа
+   * @param {number}  [o.seed=7]       зерно случайности: одинаковый выигрыш при каждом play()
+   */
+  constructor({ coin, diameter = 400, density = 1, loop = false, embers = true, seed = 7 } = {}) {
+    super();
+    const T = textures();
+    this.density = density;
+    this.loop = loop;
+    this.R = diameter / 2;
+    this._seed0 = seed;
+    this._seed = seed;
+    this._t = 0;
+    this._win = -1;
+    this._exploded = false;
+    this._acc = { flame: 0, rim: 0, ember: 0 };
+    this._shake = 0;
+    this._embersOn = embers;
+
+    // огонь за символом и перед ним в двух слоях; трясутся только они, символ неподвижен
+    const back = new Container();
+    const front = new Container();
+    this._layers = [back, front];
+
+    this._rays = new Sprite(T.rays); this._rays.anchor.set(0.5); this._rays.blendMode = 'add'; this._rays.tint = 0xffb347;
+    this._glow = new Sprite(T.glow); this._glow.anchor.set(0.5); this._glow.blendMode = 'add';
+    this._embers = makePool(T.soft, 220);
+    this._back = makePool(T.flame, 2400);
+    back.addChild(this._rays, this._glow, this._embers.pc, this._back.pc);
+
+    const wrap = new Container();
+    this._coin = new Sprite(coin); this._coin.anchor.set(0.5);
+    this._coin.scale.set(diameter / coin.width);
+    this._mask = new Graphics().circle(0, 0, this.R * 0.965).fill(0xffffff);
+    this._band = new Sprite(T.band); this._band.anchor.set(0.5); this._band.blendMode = 'add';
+    this._band.rotation = 0.42; this._band.height = diameter * 1.6; this._band.width = diameter * 0.3;
+    this._band.mask = this._mask; this._band.visible = false;
+    wrap.addChild(this._coin, this._mask, this._band);
+
+    this._front = makePool(T.flame, 2400);
+    this._burst = makePool(T.flame, 1400);
+    this._sparks = makePool(T.streak, 1800);
+    front.addChild(this._front.pc, this._burst.pc, this._sparks.pc);
+    this._rings = [0, 1].map(() => { const s = new Sprite(T.ring); s.anchor.set(0.5); s.blendMode = 'add'; s.alpha = 0; front.addChild(s); return s; });
+    this._flash = new Sprite(T.glow); this._flash.anchor.set(0.5); this._flash.blendMode = 'add'; this._flash.alpha = 0;
+    this._flash.scale.set((diameter * 2.6) / 256);
+    front.addChild(this._flash);
+    this.addChild(back, wrap, front);
+    this._pools = [this._embers, this._back, this._front, this._burst, this._sparks];
+  }
+
+  /** Запустить выигрыш с начала. */
+  play() { this._win = this._t; this._seed = this._seed0; this._exploded = false; }
+
+  /** Сколько частиц сейчас живо. */
+  get particleCount() { return this._pools.reduce((s, p) => s + p.alive, 0); }
+
+  /** Быстро прокрутить симуляцию вперёд, например чтобы кольцо было полным с первого кадра. */
+  warmUp(seconds, step = 1 / 60) { for (let t = 0; t < seconds; t += step) this.update(step); }
+
+  // детерминированный генератор: при каждом play() выигрыш выглядит одинаково
+  _rnd() { let s = (this._seed = (this._seed + 0x6d2b79f5) | 0); let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
+  _r(a, b) { return a + (b - a) * this._rnd(); }
+
+  _spawn(pl) {
+    for (let i = 0; i < pl.items.length; i++) {
+      const it = pl.items[pl.next];
+      pl.next = (pl.next + 1) % pl.items.length;
+      if (!it.alive) { it.alive = true; it.life = 0; return it; }
+    }
+    return null;
+  }
+
+  _orbit(phi, a) {
+    const TILT = -0.32, B = 0.46;
+    const ex = Math.cos(phi) * a, ey = Math.sin(phi) * a * B;
+    return [ex * Math.cos(TILT) - ey * Math.sin(TILT), ex * Math.sin(TILT) + ey * Math.cos(TILT)];
+  }
+
+  _emitFlames(dt, rate) {
+    this._acc.flame += rate * dt * this.density;
+    while (this._acc.flame >= 1) {
+      this._acc.flame -= 1;
+      const head = this._rnd() < 0.5 ? 0 : Math.PI;
+      const phi = this._t * 2.6 + head - Math.pow(this._rnd(), 1.6) * 1.1;   // шлейф отстаёт от головы кометы
+      const a = this.R * this._r(1.12, 1.42);
+      const [x, y] = this._orbit(phi, a);
+      const it = this._spawn(Math.sin(phi) > 0 ? this._front : this._back);
+      if (!it) continue;
+      it.x = x + this._r(-20, 20); it.y = y + this._r(-20, 20);
+      const [x2, y2] = this._orbit(phi + 0.05, a);
+      const sp = this._r(60, 160), tl = Math.hypot(x2 - x, y2 - y) || 1;
+      it.vx = ((x2 - x) / tl) * sp; it.vy = ((y2 - y) / tl) * sp - this._r(30, 90);
+      it.max = this._r(0.5, 1.0); it.s = this._r(0.8, 1.6) * this.R / 200; it.r = this._r(-0.4, 0.4); it.ph = this._r(0, 6.28);
+    }
+  }
+
+  _emitRim(dt, rate) {
+    this._acc.rim += rate * dt * this.density;
+    while (this._acc.rim >= 1) {
+      this._acc.rim -= 1;
+      const it = this._spawn(this._back);
+      if (!it) continue;
+      const a = this._r(0, Math.PI * 2), r = this.R * this._r(0.97, 1.06);
+      it.x = Math.cos(a) * r; it.y = Math.sin(a) * r;
+      it.vx = Math.cos(a) * this._r(30, 90); it.vy = Math.sin(a) * this._r(30, 90) - this._r(70, 170);
+      it.max = this._r(0.4, 0.8); it.s = this._r(0.7, 1.3) * this.R / 200; it.r = 0; it.ph = this._r(0, 6.28);
+    }
+  }
+
+  _emitEmbers(dt) {
+    if (!this._embersOn) return;
+    this._acc.ember += 32 * dt * this.density;
+    const span = this.R * 1.75;
+    while (this._acc.ember >= 1) {
+      this._acc.ember -= 1;
+      const it = this._spawn(this._embers);
+      if (!it) continue;
+      it.x = this._r(-span, span); it.y = span; it.vx = this._r(-12, 12); it.vy = this._r(-110, -45);
+      it.max = this._r(4, 8); it.s = this._r(0.05, 0.16); it.ph = this._r(0, 6.28);
+    }
+  }
+
+  _explode() {
+    const R = this.R;
+    for (let i = 0, n = Math.round(420 * this.density); i < n; i++) {
+      const it = this._spawn(this._sparks); if (!it) break;
+      const a = this._r(0, Math.PI * 2), sp = this._r(380, 1250) * R / 200;
+      it.x = Math.cos(a) * R * 0.85; it.y = Math.sin(a) * R * 0.85;
+      it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp - this._r(0, 220);
+      it.max = this._r(0.5, 1.35); it.s = this._r(0.28, 0.55) * R / 200;
+    }
+    for (let i = 0, n = Math.round(320 * this.density); i < n; i++) {
+      const it = this._spawn(this._burst); if (!it) break;
+      const a = this._r(0, Math.PI * 2), sp = this._r(90, 330) * R / 200, r = R * this._r(0.9, 1.05);
+      it.x = Math.cos(a) * r; it.y = Math.sin(a) * r;
+      it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp - this._r(20, 120);
+      it.max = this._r(0.55, 1.05); it.s = this._r(0.9, 1.7) * R / 200; it.r = a + Math.PI / 2; it.ph = this._r(0, 6.28);
+    }
+  }
+
+  _stepPool(pl, dt, fn) {
+    const list = pl.pc.particleChildren;
+    list.length = 0;
+    for (const it of pl.items) {
+      if (!it.alive) continue;
+      it.life += dt;
+      const k = it.life / it.max;
+      if (k >= 1) { it.alive = false; continue; }
+      fn(it, k, dt);
+      list.push(it.p);
+    }
+    pl.alive = list.length;
+    pl.pc.update();
+  }
+
+  /** Вызывать каждый кадр. dt — секунды (в Pixi 8: ticker.deltaMS / 1000). */
+  update(dt) {
+    dt = Math.min(dt, 1 / 30);
+    this._t += dt;
+    const t = this._t, R = this.R, D = R * 2;
+    let T = this._win >= 0 ? t - this._win : 99;
+    if (this.loop && this._win >= 0 && T > 4.2) { this.play(); T = 0; }
+    const winOn = T < 3.0;
+    if (T >= 0.18 && !this._exploded && this._win >= 0) { this._exploded = true; this._explode(); this._shake = 1; }
+
+    this._emitFlames(dt, winOn && T > 0.18 ? 900 : 300);
+    this._emitRim(dt, winOn && T > 0.18 && T < 2.7 ? 520 : 0);
+    this._emitEmbers(dt);
+
+    const flame = (it, k, dt) => {
+      it.vx *= 1 - 0.9 * dt; it.vy *= 1 - 0.9 * dt; it.vy -= 60 * dt;
+      it.x += it.vx * dt + Math.sin(t * 9 + it.ph) * 18 * dt; it.y += it.vy * dt;
+      const p = it.p, sz = it.s * Math.sin(Math.min(1, k * 1.6) * Math.PI * 0.5) * (1 - k * 0.55);
+      p.x = it.x; p.y = it.y; p.scaleX = sz * 0.8; p.scaleY = sz * 1.15;
+      p.rotation = it.r + Math.sin(t * 6 + it.ph) * 0.25;
+      p.tint = FIRE(k); p.alpha = Math.min(1, k * 6) * (1 - k) * 0.9;
+    };
+    this._stepPool(this._back, dt, flame);
+    this._stepPool(this._front, dt, flame);
+    this._stepPool(this._burst, dt, (it, k, dt) => {
+      it.vx *= 1 - 1.6 * dt; it.vy *= 1 - 1.6 * dt; it.vy -= 90 * dt;
+      it.x += it.vx * dt; it.y += it.vy * dt;
+      const p = it.p, sz = it.s * (0.55 + k * 0.9) * (1 - k * 0.3);
+      p.x = it.x; p.y = it.y; p.scaleX = sz * 0.85; p.scaleY = sz * 1.1; p.rotation = it.r;
+      p.tint = FIRE(Math.min(1, k * 1.15)); p.alpha = Math.min(1, k * 8) * Math.pow(1 - k, 1.4) * 0.75;
+    });
+    this._stepPool(this._sparks, dt, (it, k, dt) => {
+      it.vx *= 1 - 2.1 * dt; it.vy *= 1 - 2.1 * dt; it.vy += 820 * dt * R / 200;
+      it.x += it.vx * dt; it.y += it.vy * dt;
+      const p = it.p, sp = Math.hypot(it.vx, it.vy);
+      p.x = it.x; p.y = it.y; p.rotation = Math.atan2(it.vy, it.vx);
+      p.scaleX = (0.18 + sp / (1100 * R / 200)) * it.s * 2.2; p.scaleY = it.s * (1 - k * 0.6);
+      p.tint = SPARK(k); p.alpha = k < 0.6 ? 1 : (1 - k) / 0.4;
+    });
+    this._stepPool(this._embers, dt, (it, k, dt) => {
+      it.x += (it.vx + Math.sin(t * 1.7 + it.ph) * 22) * dt; it.y += it.vy * dt;
+      const p = it.p;
+      p.x = it.x; p.y = it.y; p.scaleX = p.scaleY = it.s * (1 - k * 0.5);
+      p.tint = EMBER(k); p.alpha = (0.35 + 0.65 * Math.abs(Math.sin(t * 7 + it.ph * 3))) * Math.min(1, k * 8) * (1 - k);
+    });
+
+    // блик
+    if (T > 1.85 && T < 2.5) {
+      const u = (T - 1.85) / 0.65;
+      this._band.visible = true; this._band.x = (-1.1 + 2.2 * easeInOut(u)) * R; this._band.alpha = Math.sin(u * Math.PI);
+    } else this._band.visible = false;
+
+    // лучи, свечение, ударные волны, вспышка
+    const pop = T >= 0.18 ? Math.max(0, 1 - (T - 0.18) / 1.6) : 0;
+    this._rays.rotation = t * 0.22;
+    this._rays.scale.set(((1.32 + 0.25 * pop) * D * 1.8) / 256);
+    this._rays.alpha = 0.16 + 0.08 * Math.sin(t * 2.3) + 0.5 * pop;
+    this._glow.scale.set((D * 2.1 + 27 * Math.sin(t * 3.1) * (R / 200) + 220 * pop * (R / 200)) / 256);
+    this._glow.alpha = 0.75 + 0.25 * pop;
+    this._rings.forEach((s, i) => {
+      const u = (T - (0.18 + i * 0.09)) / (0.55 + i * 0.35);
+      if (u < 0 || u > 1) { s.alpha = 0; return; }
+      s.scale.set(((0.55 + 2.4 * easeOutCubic(u)) * D) / 256);
+      s.alpha = (1 - u) * (i ? 0.55 : 0.95);
+      s.tint = i ? 0xff9a3c : 0xffe3a0;
+    });
+    this._flash.alpha = T >= 0.18 && T < 0.5 ? (1 - (T - 0.18) / 0.32) * 0.55 : 0;
+
+    // тряска огня на ударе: символ и позиция самого эффекта не двигаются
+    this._shake = Math.max(0, this._shake - dt * 2.8);
+    const sh = this._shake * this._shake * 14 * (R / 200);
+    const sx = this._r(-sh, sh), sy = this._r(-sh, sh);
+    for (const l of this._layers) l.position.set(sx, sy);
+  }
+
+  destroy(options) {
+    // общие текстуры не уничтожаем: их используют другие экземпляры
+    super.destroy({ children: true, texture: false, textureSource: false, ...(typeof options === 'object' ? options : {}) });
+  }
+}
+
+
+// ----- this page's demo
+import { Application, ImageSource } from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';   // Sprite and Texture come from the module's import
+
+const $ = (id) => document.getElementById(id);
+const fmtMB = (b) => (b / 1048576).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' МБ';
+
+// video: show a play button if the phone refuses to autoplay (iOS low power mode)
+const vid = $('vid');
+setTimeout(() => { if (vid.paused) $('vid-play').hidden = false; }, 1200);
+$('vid-play').addEventListener('click', () => { vid.play().then(() => { $('vid-play').hidden = true; }).catch(() => {}); });
+
+// copy buttons
+for (const b of document.querySelectorAll('.copy')) {
+  b.addEventListener('click', () => {
+    const pre = $(b.dataset.for);
+    const done = () => { b.textContent = 'Скопировано'; setTimeout(() => { b.textContent = 'Скопировать'; }, 1600); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'Выделено, скопируй вручную'; };
+    try { navigator.clipboard.writeText(pre.textContent).then(done, fallback); } catch (e) { fallback(); }
+  });
+}
+
+// particles stage
+const SIZE = 720;
+const app = new Application();
+await app.init({ width: SIZE, height: SIZE, backgroundAlpha: 0, antialias: false, preference: 'webgl',
+  resolution: Math.min(window.devicePixelRatio || 1, 2), autoDensity: true, autoStart: false });
+$('stage').prepend(app.canvas);
+
+const bgCanvas = document.createElement('canvas'); bgCanvas.width = bgCanvas.height = 256;
+{ const g = bgCanvas.getContext('2d'); const gr = g.createRadialGradient(128, 118, 0, 128, 128, 184);
+  gr.addColorStop(0, '#2a1426'); gr.addColorStop(0.45, '#140a1a'); gr.addColorStop(1, '#040208'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); }
+const bg = new Sprite(Texture.from(bgCanvas)); bg.width = bg.height = SIZE + 80; bg.position.set(-40);
+app.stage.addChild(bg);
+
+const coinBuf = await (await fetch('fire-coin-win/coin.avif')).arrayBuffer();
+const coinBmp = await createImageBitmap(new Blob([coinBuf], { type: 'image/avif' }));
+const coin = new Texture({ source: new ImageSource({ resource: coinBmp, alphaMode: 'premultiply-alpha-on-upload' }) });
+
+const fx = new FireCoinWin({ coin, diameter: 400, density: 1, loop: true });
+fx.position.set(SIZE / 2, SIZE / 2);
+app.stage.addChild(fx);
+fx.warmUp(1);
+fx.play();
+
+// texture memory of everything the effect holds: coin + generated textures + background
+const genBytes = [64 * 64, 64 * 96, 128 * 24, 256 * 256, 256 * 256, 256 * 256, 96 * 512].reduce((s, v) => s + v * 4, 0);
+$('vram').textContent = fmtMB(coin.width * coin.height * 4 + genBytes);
+
+const work = []; let last = 0, fpsT = 0, fpsN = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = last ? (now - last) / 1000 : 1 / 60; last = now;
+  const t0 = performance.now();
+  fx.update(dt);
+  app.renderer.render(app.stage);
+  work.push(performance.now() - t0); if (work.length > 120) work.shift();
+  fpsN++;
+  if (now - fpsT > 500) {
+    const fps = fpsN * 1000 / (now - fpsT); fpsT = now; fpsN = 0;
+    const avg = work.reduce((s, v) => s + v, 0) / work.length;
+    $('hud').textContent = `${fps.toFixed(0)} fps · кадр ${avg.toFixed(1).replace('.', ',')} мс · частиц ${fx.particleCount}`;
+  }
+}
+requestAnimationFrame(frame);
+
+const replay = () => fx.play();
+$('again').addEventListener('click', replay);
+$('stage').addEventListener('click', replay);
+$('stage').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); replay(); } });
+$('density').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  fx.density = +b.dataset.v;
+  for (const x of $('density').children) x.setAttribute('aria-pressed', String(x === b));
+});
+
+// test hook: deterministic still at a moment of the win
+window.__vs = {
+  at(t) { fx.loop = false; fx.warmUp(0.5); fx.play(); fx.warmUp(t); app.renderer.render(app.stage); fx.loop = true; return fx.particleCount; },
+  bench(n = 600) { let s = 0, peak = 0; fx.play(); for (let k = 0; k < n; k++) { const a = performance.now(); fx.update(1 / 60); s += performance.now() - a; peak = Math.max(peak, fx.particleCount); } return { simMs: s / n, peak }; },
+};
+</script>
 </body>
 </html>

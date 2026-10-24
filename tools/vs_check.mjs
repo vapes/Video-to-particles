@@ -1,6 +1,6 @@
 import http from 'http'; import fs from 'fs'; import path from 'path';
 import chromium from '@sparticuz/chromium'; import puppeteer from 'puppeteer-core';
-const SITE = path.resolve('fire-coin-win'); const OUT = path.resolve('work/vs'); fs.mkdirSync(OUT, { recursive: true });
+const SITE = path.resolve(process.env.SITE_DIR || 'fire-coin-win'); const OUT = path.resolve('work/vs'); fs.mkdirSync(OUT, { recursive: true });
 const PIXI = fs.readFileSync('node_modules/pixi.js/dist/pixi.min.mjs');
 const TYPES = { '.avif': 'image/avif', '.mp4': 'video/mp4', '.js': 'text/javascript' };
 const pageHtml = () => { const raw = fs.readFileSync(path.join(SITE, 'index.html'), 'utf8');

@@ -29,4 +29,10 @@ assert '__' not in re.sub(r'__vs|__proto__', '', page.split('<script type="modul
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent))
 from htmldoc import to_document
 open(f'{D}/index.html', 'w').write(to_document(page))
+# GitHub Pages home page: the same demo at the repo root, assets stay in fire-coin-win/
+home = page
+for old, new in (('src="clip.mp4"', 'src="fire-coin-win/clip.mp4"'), ("fetch('coin.avif')", "fetch('fire-coin-win/coin.avif')")):
+    assert home.count(old) == 1, old
+    home = home.replace(old, new)
+open(str(__import__('pathlib').Path(D).parent / 'index.html'), 'w').write(to_document(home))
 print('module', nb, 'bytes, gzip', gz, '| page', len(page.encode()))

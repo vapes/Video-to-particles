@@ -92,6 +92,7 @@ pre { margin: 0; padding: 12px 14px; overflow-x: auto; font: 400 12px/1.55 var(-
 pre.tall { max-height: 460px; overflow: auto; }
 .c { color: var(--tok-com); } .s { color: var(--tok-str); } .k { color: var(--tok-kw); } .n { color: var(--tok-num); }
 .note { font-size: 12.5px; color: var(--muted); max-width: 65ch; }
+.note a { color: var(--ember); }
 @media (prefers-reduced-motion: reduce) { .btn, .copy { transition: none; } }
 </style>
 
@@ -143,7 +144,7 @@ pre.tall { max-height: 460px; overflow: auto; }
       <div class="code-head"><div><div class="name">fire-coin-win.js</div><div class="meta">__MODULE_LINES__ строк · __MODULE_KB__</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
       <pre id="code-module" class="tall">__MODULE_HTML__</pre>
     </div>
-    <p class="note">Проверено на Pixi 8.22. Эффект рисует монету сам, поэтому исходный спрайт символа на время выигрыша прячь. Текстуры частиц создаются один раз и общие для всех экземпляров. Для Pixi 7 нужна адаптация: там другой ParticleContainer.</p>
+    <p class="note">Проверено на Pixi 8.22. Эффект рисует монету сам, поэтому исходный спрайт символа на время выигрыша прячь. Текстуры частиц создаются один раз и общие для всех экземпляров. Для Pixi 7 нужна адаптация: там другой ParticleContainer. Модуль, демо и все замеры — в репозитории <a href="https://github.com/vapes/Video-to-particles">vapes/Video-to-particles</a>.</p>
   </section>
 </main>
 
