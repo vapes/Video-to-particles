@@ -32,8 +32,17 @@ for (let k = 0; k < 3; k++) { await new Promise((r) => setTimeout(r, 1500)); con
 console.log('vram', await page.evaluate(() => document.getElementById('vram').textContent));
 console.log('copy texts', await page.evaluate(() => [document.getElementById('code-usage').textContent.split('\n').length, document.getElementById('code-module').textContent.slice(0, 60)]));
 const el = await page.$('#stage');
-for (const t of [0.22, 0.6, 1.3]) { const n = await page.evaluate((t) => window.__vs.at(t), t); await el.screenshot({ path: path.join(OUT, `fx_${String(t).replace('.', '_')}.png`) }); console.log('t', t, 'particles', n); }
+if (process.env.SHADERS) await page.evaluate(() => document.getElementById('s-on').click());
+for (const t of (process.env.TIMES || '0.22,0.6,1.3').split(',').map(Number)) { const n = await page.evaluate((t) => window.__vs.at(t), t); await el.screenshot({ path: path.join(OUT, `fx_${String(t).replace('.', '_')}.png`) }); console.log('t', t, 'particles', n); }
 console.log('bench', JSON.stringify(await page.evaluate(() => window.__vs.bench(600))));
+if (process.env.TOGGLE) {
+  await page.evaluate(() => window.__vs.resume());
+  for (const id of ['s-on', 'm-none', 's-off', 'm-spin', 's-on', 's-off']) {
+    await page.evaluate((id) => document.getElementById(id).click(), id);
+    await new Promise((r) => setTimeout(r, 700));
+  }
+  console.log('toggles done', await page.evaluate(() => document.getElementById('hud').textContent));
+}
 const vel = await page.$('.frame.video'); await vel.screenshot({ path: path.join(OUT, 'video.png') });
 await page.screenshot({ path: path.join(OUT, 'page.png'), fullPage: true });
 console.log(logs.filter((l) => !l.includes('GL Driver')).join('\n'));

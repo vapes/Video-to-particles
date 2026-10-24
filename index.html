@@ -124,9 +124,13 @@ pre.tall { max-height: 460px; overflow: auto; }
     <div class="label">2 · Частицы</div>
     <h2 id="h-fx">Монета + код</h2>
     <div class="frame fx" id="stage" role="button" tabindex="0" aria-label="Запустить выигрыш ещё раз"><div class="hud" id="hud">загрузка…</div></div>
-    <div class="facts"><span>Монета <b class="good">0,03 МБ</b></span><span>Модуль <b class="good">0,02 МБ</b></span><span>Длина <b>бесконечно</b></span><span>Видеопамять <b id="vram">…</b></span></div>
+    <div class="facts"><span>Монета <b class="good">0,03 МБ</b></span><span>Модуль <b class="good">0,03 МБ</b></span><span>Длина <b>бесконечно</b></span><span>Видеопамять <b id="vram">…</b></span></div>
     <div class="controls">
       <button type="button" class="btn" id="again">Ещё раз</button>
+      <div class="seg" id="shaders" aria-label="Шейдеры">
+        <button type="button" id="s-off" data-s="0" aria-pressed="true">Без шейдеров</button>
+        <button type="button" id="s-on" data-s="1" aria-pressed="false">Шейдеры</button>
+      </div>
       <div class="seg" id="motion" aria-label="Движение монеты">
         <button type="button" id="m-spin" data-m="spin" aria-pressed="true">Вращается</button>
         <button type="button" id="m-punch" data-m="punch" aria-pressed="false">Удар</button>
@@ -170,14 +174,16 @@ fx.play();
 <span class="c">// fx.destroy();</span></pre>
     </div>
     <div class="code">
-      <div class="code-head"><div><div class="name">fire-coin-win.js</div><div class="meta">379 строк · 19 КБ, в gzip 6 КБ</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
+      <div class="code-head"><div><div class="name">fire-coin-win.js</div><div class="meta">544 строк · 27 КБ, в gzip 9 КБ</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
       <pre id="code-module" class="tall"><span class="c">// fire-coin-win.js — огненный выигрыш вокруг круглого символа. Pixi 8.</span>
 <span class="c">// Символ — одна статичная картинка. По умолчанию он отыгрывает удар и двойной поворот</span>
 <span class="c">// ребром (motion: 'spin'); 'punch' — только удар и покачивание, 'none' — стоит на месте.</span>
 <span class="c">// Огненное кольцо, взрыв искр, ударные волны, горящий край, блик и лучи считаются</span>
-<span class="c">// частицами каждый кадр.</span>
+<span class="c">// частицами каждый кадр. shaders: true добавляет шейдеры (только WebGL-рендер):</span>
+<span class="c">// раскалённую монету с лавой в гравировке, ударную волну с преломлением и</span>
+<span class="c">// RGB-сдвигом, марево над огнём.</span>
 <span class="c">// Текстуры частиц рисуются кодом один раз и общие для всех экземпляров.</span>
-<span class="k">import</span> { Container, Sprite, Texture, ParticleContainer, Particle, Graphics } <span class="k">from</span> <span class="s">'pixi.js'</span>;
+<span class="k">import</span> { Container, Sprite, Texture, ParticleContainer, Particle, Graphics, Filter, GlProgram, Rectangle, defaultFilterVert } <span class="k">from</span> <span class="s">'pixi.js'</span>;
 
 <span class="k">const</span> clamp01 = (v) =&gt; (v &lt; <span class="n">0</span> ? <span class="n">0</span> : v &gt; <span class="n">1</span> ? <span class="n">1</span> : v);
 <span class="k">const</span> easeOutCubic = (t) =&gt; <span class="n">1</span> - Math.pow(<span class="n">1</span> - t, <span class="n">3</span>);
@@ -257,6 +263,95 @@ fx.play();
   <span class="k">return</span> TEX;
 }
 
+<span class="c">// ---------------------------------------------------------------- шейдеры (опция shaders)</span>
+<span class="c">// Все фильтры работают в координатах своей filterArea: uv 0..1 по квадрату вокруг центра эффекта.</span>
+<span class="c">// Только WebGL: на WebGPU-рендере Pixi их пропускает, эффект остаётся на частицах.</span>
+<span class="k">const</span> GLSL_NOISE = <span class="s">`
+float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y); }
+float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i &lt; 4; i++) { v += a * noise(p); p = p * 2.02 + vec2(1.7, 9.2); a *= 0.5; } return v; }
+`</span>;
+<span class="k">const</span> GLSL_HEAD = <span class="s">`
+in vec2 vTextureCoord;
+out vec4 finalColor;
+uniform sampler2D uTexture;
+uniform highp vec4 uInputSize;     // highp: так же объявлены в вершинном шейдере Pixi
+uniform highp vec4 uOutputFrame;
+uniform vec4 uInputClamp;
+vec2 areaUv(){ return vTextureCoord * uInputSize.xy / uOutputFrame.zw; }          // 0..1 по filterArea
+vec2 toTex(vec2 duv){ return duv * uOutputFrame.zw * uInputSize.zw; }             // сдвиг в uv -&gt; в координаты текстуры
+vec4 tap(vec2 tc){ return texture(uTexture, clamp(tc, uInputClamp.xy, uInputClamp.zw)); }
+`</span>;
+
+<span class="c">// раскалённая монета: лава течёт в тёмной гравировке, край накаляется, на ударе монета вспыхивает</span>
+<span class="k">const</span> MOLTEN_FRAG = GLSL_HEAD + GLSL_NOISE + <span class="s">`
+uniform float uTime;
+uniform float uHeat;
+uniform float uIdle;
+void main(){
+  vec4 c = texture(uTexture, vTextureCoord);
+  vec2 p = areaUv() - 0.5;
+  float r = length(p) * 2.0;
+  vec3 rgb = c.a &gt; 0.0 ? c.rgb / c.a : vec3(0.0);
+  float luma = dot(rgb, vec3(0.299, 0.587, 0.114));
+  float groove = 1.0 - smoothstep(0.26, 0.52, luma);
+  float flow = fbm(p * 7.0 + vec2(0.0, -uTime * 0.6));
+  float veins = pow(1.0 - abs(2.0 * flow - 1.0), 6.0);                 // тонкие трещины с лавой
+  float flick = 0.8 + 0.2 * sin(uTime * 13.0 + flow * 9.0);
+  float heat = groove * (uIdle + uHeat) * (0.2 + 1.7 * veins) * flick;
+  heat += smoothstep(0.86, 0.99, r) * (0.2 + 0.7 * uHeat) * (0.5 + 0.7 * flow);
+  heat = clamp(heat, 0.0, 1.4);
+  vec3 lava = vec3(1.0, 0.25, 0.02) * smoothstep(0.0, 0.45, heat)
+            + vec3(0.0, 0.55, 0.15) * smoothstep(0.35, 0.9, heat)
+            + vec3(0.0, 0.2, 0.55) * smoothstep(0.85, 1.3, heat);
+  vec3 col = rgb * (1.0 + 0.4 * uHeat) + lava;
+  finalColor = vec4(col * c.a, c.a);
+}`</span>;
+
+<span class="c">// ударная волна: кольцо преломляет картинку, по краю волны и во всём кадре — RGB-сдвиг</span>
+<span class="k">const</span> SHOCK_FRAG = GLSL_HEAD + <span class="s">`
+uniform float uRadius;
+uniform float uWidth;
+uniform float uAmp;
+uniform float uSplit;
+uniform float uGlow;
+void main(){
+  vec2 d = areaUv() - 0.5;
+  float dist = length(d);
+  vec2 dir = dist &gt; 0.0 ? d / dist : vec2(0.0);
+  float x = (dist - uRadius) / uWidth;
+  float ring = exp(-x * x * 3.0);
+  vec2 tc = vTextureCoord + toTex(dir * (-x * ring * uAmp));
+  vec2 ca = toTex(dir * uSplit * (0.3 + ring));
+  vec4 g = tap(tc);
+  float red = tap(tc + ca).r;
+  float blue = tap(tc - ca).b;
+  vec3 col = vec3(red, g.g, blue) + ring * uGlow * vec3(1.0, 0.72, 0.38);
+  finalColor = vec4(col, max(g.a, max(red, blue)));
+}`</span>;
+
+<span class="c">// марево: горячий воздух колышет огонь и лучи</span>
+<span class="k">const</span> HAZE_FRAG = GLSL_HEAD + GLSL_NOISE + <span class="s">`
+uniform float uTime;
+uniform float uStrength;
+void main(){
+  vec2 q = areaUv() * 7.0;
+  float n1 = fbm(q + vec2(0.0, uTime * 1.3));
+  float n2 = fbm(q * 1.7 + vec2(5.2, uTime * 2.1));
+  vec2 off = (vec2(n1, n2) - 0.5) * uStrength;
+  finalColor = tap(vTextureCoord + toTex(off));
+}`</span>;
+
+<span class="k">function</span> makeFilter(name, fragment, uniforms, resolution = <span class="n">1</span>) {
+  <span class="k">return</span> <span class="k">new</span> Filter({
+    glProgram: <span class="k">new</span> GlProgram({ vertex: defaultFilterVert, fragment, name, preferredFragmentPrecision: <span class="s">'highp'</span> }),
+    resources: { fx: uniforms },
+    resolution,
+    clipToViewport: <span class="k">false</span>,   <span class="c">// filterArea задаёт систему координат; обрезка экраном её бы сдвинула</span>
+  });
+}
+
 <span class="c">// пул частиц фиксированного размера: без аллокаций во время анимации.</span>
 <span class="c">// В контейнер каждый кадр попадают только живые частицы, поэтому запас пула ничего не стоит.</span>
 <span class="k">function</span> makePool(tex, n) {
@@ -285,12 +380,18 @@ fx.play();
    * @param {number}  [o.seed=7]       зерно случайности: одинаковый выигрыш при каждом play()
    * @param {'spin'|'punch'|'none'} [o.motion='spin'] движение символа: удар и поворот ребром,
    *                                   только удар и покачивание, или неподвижно (можно менять на лету)
+   * @param {boolean} [o.shaders=false] шейдеры: раскалённая монета, ударная волна, марево.
+   *                                   Только WebGL, дороже по GPU; можно менять на лету
    */</span>
-  constructor({ coin, diameter = <span class="n">400</span>, density = <span class="n">1</span>, loop = <span class="k">false</span>, embers = <span class="k">true</span>, seed = <span class="n">7</span>, motion = <span class="s">'spin'</span> } = {}) {
+  constructor({ coin, diameter = <span class="n">400</span>, density = <span class="n">1</span>, loop = <span class="k">false</span>, embers = <span class="k">true</span>, seed = <span class="n">7</span>, motion = <span class="s">'spin'</span>, shaders = <span class="k">false</span> } = {}) {
     <span class="k">super</span>();
     <span class="k">const</span> T = textures();
     <span class="k">this</span>.density = density;
     <span class="k">this</span>.motion = motion;
+    <span class="k">this</span>.shaders = shaders;
+    <span class="k">this</span>._fx = <span class="k">null</span>;          <span class="c">// фильтры создаются при первом включении shaders</span>
+    <span class="k">this</span>._fxOn = <span class="k">false</span>;
+    <span class="k">this</span>._shockOn = <span class="k">false</span>;
     <span class="k">this</span>.loop = loop;
     <span class="k">this</span>.R = diameter / <span class="n">2</span>;
     <span class="k">this</span>._seed0 = seed;
@@ -333,7 +434,11 @@ fx.play();
     <span class="k">this</span>._flash = <span class="k">new</span> Sprite(T.glow); <span class="k">this</span>._flash.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._flash.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._flash.alpha = <span class="n">0</span>;
     <span class="k">this</span>._flash.scale.set((diameter * <span class="n">2.6</span>) / <span class="n">256</span>);
     front.addChild(<span class="k">this</span>._flash);
-    <span class="k">this</span>.addChild(back, wrap, front);
+    <span class="c">// всё в одном контейнере: на него на время удара вешается фильтр ударной волны</span>
+    <span class="k">const</span> scene = (<span class="k">this</span>._scene = <span class="k">new</span> Container());
+    scene.addChild(back, wrap, front);
+    <span class="k">this</span>.addChild(scene);
+    <span class="k">this</span>._D = diameter;
     <span class="k">this</span>._pools = [<span class="k">this</span>._embers, <span class="k">this</span>._back, <span class="k">this</span>._front, <span class="k">this</span>._burst, <span class="k">this</span>._sparks];
   }
 
@@ -522,6 +627,7 @@ fx.play();
 
     <span class="c">// лучи, свечение, ударные волны, вспышка</span>
     <span class="k">const</span> pop = T &gt;= <span class="n">0.18</span> ? Math.max(<span class="n">0</span>, <span class="n">1</span> - (T - <span class="n">0.18</span>) / <span class="n">1.6</span>) : <span class="n">0</span>;
+    <span class="k">this</span>._applyShaders(T, t, pop);
     <span class="k">this</span>._rays.rotation = t * <span class="n">0.22</span>;
     <span class="k">this</span>._rays.scale.set(((<span class="n">1.32</span> + <span class="n">0.25</span> * pop) * D * <span class="n">1.8</span>) / <span class="n">256</span>);
     <span class="k">this</span>._rays.alpha = <span class="n">0.16</span> + <span class="n">0.08</span> * Math.sin(t * <span class="n">2.3</span>) + <span class="n">0.5</span> * pop;
@@ -545,8 +651,71 @@ fx.play();
     <span class="k">else</span> <span class="k">this</span>._wrap.position.set(sx, bob + sy);
   }
 
+  _makeShaders() {
+    <span class="k">const</span> S = <span class="k">this</span>._D * <span class="n">3.2</span>;                            <span class="c">// квадрат вокруг центра, где работают фильтры</span>
+    <span class="k">const</span> area = <span class="k">new</span> Rectangle(-S / <span class="n">2</span>, -S / <span class="n">2</span>, S, S);
+    <span class="k">const</span> fx = {
+      molten: makeFilter(<span class="s">'fcw-molten'</span>, MOLTEN_FRAG, {
+        uTime: { value: <span class="n">0</span>, type: <span class="s">'f32'</span> }, uHeat: { value: <span class="n">0</span>, type: <span class="s">'f32'</span> }, uIdle: { value: <span class="n">0.2</span>, type: <span class="s">'f32'</span> },
+      }, <span class="s">'inherit'</span>),
+      shock: makeFilter(<span class="s">'fcw-shock'</span>, SHOCK_FRAG, {
+        uRadius: { value: <span class="n">0</span>, type: <span class="s">'f32'</span> }, uWidth: { value: <span class="n">0.05</span>, type: <span class="s">'f32'</span> }, uAmp: { value: <span class="n">0</span>, type: <span class="s">'f32'</span> },
+        uSplit: { value: <span class="n">0</span>, type: <span class="s">'f32'</span> }, uGlow: { value: <span class="n">0</span>, type: <span class="s">'f32'</span> },
+      }),
+      hazeBack: makeFilter(<span class="s">'fcw-haze'</span>, HAZE_FRAG, { uTime: { value: <span class="n">0</span>, type: <span class="s">'f32'</span> }, uStrength: { value: <span class="n">0.01</span>, type: <span class="s">'f32'</span> } }, <span class="n">0.5</span>),
+      hazeFront: makeFilter(<span class="s">'fcw-haze'</span>, HAZE_FRAG, { uTime: { value: <span class="n">0</span>, type: <span class="s">'f32'</span> }, uStrength: { value: <span class="n">0.01</span>, type: <span class="s">'f32'</span> } }, <span class="n">0.5</span>),
+    };
+    <span class="k">const</span> tw = <span class="k">this</span>._coin.texture.width, th = <span class="k">this</span>._coin.texture.height;
+    <span class="k">this</span>._coin.filterArea = <span class="k">new</span> Rectangle(-tw / <span class="n">2</span>, -th / <span class="n">2</span>, tw, th);   <span class="c">// uv монеты 0..1</span>
+    <span class="k">this</span>._scene.filterArea = area;
+    <span class="k">this</span>._layers[<span class="n">0</span>].filterArea = area;
+    <span class="k">this</span>._front.pc.filterArea = area;
+    <span class="k">this</span>._fx = fx;
+  }
+
+  _applyShaders(T, t, pop) {
+    <span class="k">const</span> on = !!<span class="k">this</span>.shaders;
+    <span class="k">if</span> (on &amp;&amp; !<span class="k">this</span>._fx) <span class="k">this</span>._makeShaders();
+    <span class="k">if</span> (on !== <span class="k">this</span>._fxOn) {
+      <span class="k">this</span>._fxOn = on;
+      <span class="k">const</span> fx = <span class="k">this</span>._fx;
+      <span class="k">this</span>._coin.filters = on ? [fx.molten] : <span class="k">null</span>;
+      <span class="k">this</span>._layers[<span class="n">0</span>].filters = on ? [fx.hazeBack] : <span class="k">null</span>;
+      <span class="k">this</span>._front.pc.filters = on ? [fx.hazeFront] : <span class="k">null</span>;
+      <span class="k">if</span> (!on) { <span class="k">this</span>._scene.filters = <span class="k">null</span>; <span class="k">this</span>._shockOn = <span class="k">false</span>; }
+    }
+    <span class="k">if</span> (!on) <span class="k">return</span>;
+    <span class="k">const</span> fx = <span class="k">this</span>._fx;
+
+    <span class="c">// монета раскаляется на замахе, вспыхивает на ударе и остывает</span>
+    <span class="k">const</span> m = fx.molten.resources.fx.uniforms;
+    m.uTime = t;
+    m.uIdle = <span class="n">0.42</span> + <span class="n">0.08</span> * Math.sin(t * <span class="n">2.3</span>);
+    m.uHeat = T &lt; <span class="n">0.18</span> ? <span class="n">0.5</span> * (T / <span class="n">0.18</span>) : T &lt; <span class="n">99</span> ? Math.exp(-(T - <span class="n">0.18</span>) * <span class="n">1.8</span>) : <span class="n">0</span>;
+
+    <span class="c">// марево сильнее в момент удара</span>
+    <span class="k">for</span> (<span class="k">const</span> h <span class="k">of</span> [fx.hazeBack, fx.hazeFront]) {
+      <span class="k">const</span> u = h.resources.fx.uniforms;
+      u.uTime = t; u.uStrength = <span class="n">0.008</span> + <span class="n">0.014</span> * pop;
+    }
+
+    <span class="c">// ударная волна живёт 0,8 с после удара; в остальное время фильтр снят и ничего не стоит</span>
+    <span class="k">const</span> shock = T &gt;= <span class="n">0.18</span> &amp;&amp; T &lt; <span class="n">0.98</span>;
+    <span class="k">if</span> (shock !== <span class="k">this</span>._shockOn) { <span class="k">this</span>._shockOn = shock; <span class="k">this</span>._scene.filters = shock ? [fx.shock] : <span class="k">null</span>; }
+    <span class="k">if</span> (shock) {
+      <span class="k">const</span> u = (T - <span class="n">0.18</span>) / <span class="n">0.8</span>, k = <span class="n">1</span> - u;
+      <span class="k">const</span> s = fx.shock.resources.fx.uniforms;
+      s.uRadius = <span class="n">0.07</span> + <span class="n">0.5</span> * easeOutCubic(u);
+      s.uWidth = <span class="n">0.045</span> + <span class="n">0.06</span> * u;
+      s.uAmp = <span class="n">0.04</span> * Math.pow(k, <span class="n">1.5</span>);
+      s.uSplit = <span class="n">0.012</span> * k * k;
+      s.uGlow = <span class="n">0.55</span> * k * k;
+    }
+  }
+
   destroy(options) {
     <span class="c">// общие текстуры не уничтожаем: их используют другие экземпляры</span>
+    <span class="k">if</span> (<span class="k">this</span>._fx) <span class="k">for</span> (<span class="k">const</span> f <span class="k">of</span> Object.values(<span class="k">this</span>._fx)) f.destroy();
     <span class="k">super</span>.destroy({ children: <span class="k">true</span>, texture: <span class="k">false</span>, textureSource: <span class="k">false</span>, ...(<span class="k">typeof</span> options === <span class="s">'object'</span> ? options : {}) });
   }
 }</pre>
@@ -561,9 +730,11 @@ fx.play();
 // Символ — одна статичная картинка. По умолчанию он отыгрывает удар и двойной поворот
 // ребром (motion: 'spin'); 'punch' — только удар и покачивание, 'none' — стоит на месте.
 // Огненное кольцо, взрыв искр, ударные волны, горящий край, блик и лучи считаются
-// частицами каждый кадр.
+// частицами каждый кадр. shaders: true добавляет шейдеры (только WebGL-рендер):
+// раскалённую монету с лавой в гравировке, ударную волну с преломлением и
+// RGB-сдвигом, марево над огнём.
 // Текстуры частиц рисуются кодом один раз и общие для всех экземпляров.
-import { Container, Sprite, Texture, ParticleContainer, Particle, Graphics } from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
+import { Container, Sprite, Texture, ParticleContainer, Particle, Graphics, Filter, GlProgram, Rectangle, defaultFilterVert } from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -643,6 +814,95 @@ function textures() {
   return TEX;
 }
 
+// ---------------------------------------------------------------- шейдеры (опция shaders)
+// Все фильтры работают в координатах своей filterArea: uv 0..1 по квадрату вокруг центра эффекта.
+// Только WebGL: на WebGPU-рендере Pixi их пропускает, эффект остаётся на частицах.
+const GLSL_NOISE = `
+float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y); }
+float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.02 + vec2(1.7, 9.2); a *= 0.5; } return v; }
+`;
+const GLSL_HEAD = `
+in vec2 vTextureCoord;
+out vec4 finalColor;
+uniform sampler2D uTexture;
+uniform highp vec4 uInputSize;     // highp: так же объявлены в вершинном шейдере Pixi
+uniform highp vec4 uOutputFrame;
+uniform vec4 uInputClamp;
+vec2 areaUv(){ return vTextureCoord * uInputSize.xy / uOutputFrame.zw; }          // 0..1 по filterArea
+vec2 toTex(vec2 duv){ return duv * uOutputFrame.zw * uInputSize.zw; }             // сдвиг в uv -> в координаты текстуры
+vec4 tap(vec2 tc){ return texture(uTexture, clamp(tc, uInputClamp.xy, uInputClamp.zw)); }
+`;
+
+// раскалённая монета: лава течёт в тёмной гравировке, край накаляется, на ударе монета вспыхивает
+const MOLTEN_FRAG = GLSL_HEAD + GLSL_NOISE + `
+uniform float uTime;
+uniform float uHeat;
+uniform float uIdle;
+void main(){
+  vec4 c = texture(uTexture, vTextureCoord);
+  vec2 p = areaUv() - 0.5;
+  float r = length(p) * 2.0;
+  vec3 rgb = c.a > 0.0 ? c.rgb / c.a : vec3(0.0);
+  float luma = dot(rgb, vec3(0.299, 0.587, 0.114));
+  float groove = 1.0 - smoothstep(0.26, 0.52, luma);
+  float flow = fbm(p * 7.0 + vec2(0.0, -uTime * 0.6));
+  float veins = pow(1.0 - abs(2.0 * flow - 1.0), 6.0);                 // тонкие трещины с лавой
+  float flick = 0.8 + 0.2 * sin(uTime * 13.0 + flow * 9.0);
+  float heat = groove * (uIdle + uHeat) * (0.2 + 1.7 * veins) * flick;
+  heat += smoothstep(0.86, 0.99, r) * (0.2 + 0.7 * uHeat) * (0.5 + 0.7 * flow);
+  heat = clamp(heat, 0.0, 1.4);
+  vec3 lava = vec3(1.0, 0.25, 0.02) * smoothstep(0.0, 0.45, heat)
+            + vec3(0.0, 0.55, 0.15) * smoothstep(0.35, 0.9, heat)
+            + vec3(0.0, 0.2, 0.55) * smoothstep(0.85, 1.3, heat);
+  vec3 col = rgb * (1.0 + 0.4 * uHeat) + lava;
+  finalColor = vec4(col * c.a, c.a);
+}`;
+
+// ударная волна: кольцо преломляет картинку, по краю волны и во всём кадре — RGB-сдвиг
+const SHOCK_FRAG = GLSL_HEAD + `
+uniform float uRadius;
+uniform float uWidth;
+uniform float uAmp;
+uniform float uSplit;
+uniform float uGlow;
+void main(){
+  vec2 d = areaUv() - 0.5;
+  float dist = length(d);
+  vec2 dir = dist > 0.0 ? d / dist : vec2(0.0);
+  float x = (dist - uRadius) / uWidth;
+  float ring = exp(-x * x * 3.0);
+  vec2 tc = vTextureCoord + toTex(dir * (-x * ring * uAmp));
+  vec2 ca = toTex(dir * uSplit * (0.3 + ring));
+  vec4 g = tap(tc);
+  float red = tap(tc + ca).r;
+  float blue = tap(tc - ca).b;
+  vec3 col = vec3(red, g.g, blue) + ring * uGlow * vec3(1.0, 0.72, 0.38);
+  finalColor = vec4(col, max(g.a, max(red, blue)));
+}`;
+
+// марево: горячий воздух колышет огонь и лучи
+const HAZE_FRAG = GLSL_HEAD + GLSL_NOISE + `
+uniform float uTime;
+uniform float uStrength;
+void main(){
+  vec2 q = areaUv() * 7.0;
+  float n1 = fbm(q + vec2(0.0, uTime * 1.3));
+  float n2 = fbm(q * 1.7 + vec2(5.2, uTime * 2.1));
+  vec2 off = (vec2(n1, n2) - 0.5) * uStrength;
+  finalColor = tap(vTextureCoord + toTex(off));
+}`;
+
+function makeFilter(name, fragment, uniforms, resolution = 1) {
+  return new Filter({
+    glProgram: new GlProgram({ vertex: defaultFilterVert, fragment, name, preferredFragmentPrecision: 'highp' }),
+    resources: { fx: uniforms },
+    resolution,
+    clipToViewport: false,   // filterArea задаёт систему координат; обрезка экраном её бы сдвинула
+  });
+}
+
 // пул частиц фиксированного размера: без аллокаций во время анимации.
 // В контейнер каждый кадр попадают только живые частицы, поэтому запас пула ничего не стоит.
 function makePool(tex, n) {
@@ -671,12 +931,18 @@ export class FireCoinWin extends Container {
    * @param {number}  [o.seed=7]       зерно случайности: одинаковый выигрыш при каждом play()
    * @param {'spin'|'punch'|'none'} [o.motion='spin'] движение символа: удар и поворот ребром,
    *                                   только удар и покачивание, или неподвижно (можно менять на лету)
+   * @param {boolean} [o.shaders=false] шейдеры: раскалённая монета, ударная волна, марево.
+   *                                   Только WebGL, дороже по GPU; можно менять на лету
    */
-  constructor({ coin, diameter = 400, density = 1, loop = false, embers = true, seed = 7, motion = 'spin' } = {}) {
+  constructor({ coin, diameter = 400, density = 1, loop = false, embers = true, seed = 7, motion = 'spin', shaders = false } = {}) {
     super();
     const T = textures();
     this.density = density;
     this.motion = motion;
+    this.shaders = shaders;
+    this._fx = null;          // фильтры создаются при первом включении shaders
+    this._fxOn = false;
+    this._shockOn = false;
     this.loop = loop;
     this.R = diameter / 2;
     this._seed0 = seed;
@@ -719,7 +985,11 @@ export class FireCoinWin extends Container {
     this._flash = new Sprite(T.glow); this._flash.anchor.set(0.5); this._flash.blendMode = 'add'; this._flash.alpha = 0;
     this._flash.scale.set((diameter * 2.6) / 256);
     front.addChild(this._flash);
-    this.addChild(back, wrap, front);
+    // всё в одном контейнере: на него на время удара вешается фильтр ударной волны
+    const scene = (this._scene = new Container());
+    scene.addChild(back, wrap, front);
+    this.addChild(scene);
+    this._D = diameter;
     this._pools = [this._embers, this._back, this._front, this._burst, this._sparks];
   }
 
@@ -908,6 +1178,7 @@ export class FireCoinWin extends Container {
 
     // лучи, свечение, ударные волны, вспышка
     const pop = T >= 0.18 ? Math.max(0, 1 - (T - 0.18) / 1.6) : 0;
+    this._applyShaders(T, t, pop);
     this._rays.rotation = t * 0.22;
     this._rays.scale.set(((1.32 + 0.25 * pop) * D * 1.8) / 256);
     this._rays.alpha = 0.16 + 0.08 * Math.sin(t * 2.3) + 0.5 * pop;
@@ -931,8 +1202,71 @@ export class FireCoinWin extends Container {
     else this._wrap.position.set(sx, bob + sy);
   }
 
+  _makeShaders() {
+    const S = this._D * 3.2;                            // квадрат вокруг центра, где работают фильтры
+    const area = new Rectangle(-S / 2, -S / 2, S, S);
+    const fx = {
+      molten: makeFilter('fcw-molten', MOLTEN_FRAG, {
+        uTime: { value: 0, type: 'f32' }, uHeat: { value: 0, type: 'f32' }, uIdle: { value: 0.2, type: 'f32' },
+      }, 'inherit'),
+      shock: makeFilter('fcw-shock', SHOCK_FRAG, {
+        uRadius: { value: 0, type: 'f32' }, uWidth: { value: 0.05, type: 'f32' }, uAmp: { value: 0, type: 'f32' },
+        uSplit: { value: 0, type: 'f32' }, uGlow: { value: 0, type: 'f32' },
+      }),
+      hazeBack: makeFilter('fcw-haze', HAZE_FRAG, { uTime: { value: 0, type: 'f32' }, uStrength: { value: 0.01, type: 'f32' } }, 0.5),
+      hazeFront: makeFilter('fcw-haze', HAZE_FRAG, { uTime: { value: 0, type: 'f32' }, uStrength: { value: 0.01, type: 'f32' } }, 0.5),
+    };
+    const tw = this._coin.texture.width, th = this._coin.texture.height;
+    this._coin.filterArea = new Rectangle(-tw / 2, -th / 2, tw, th);   // uv монеты 0..1
+    this._scene.filterArea = area;
+    this._layers[0].filterArea = area;
+    this._front.pc.filterArea = area;
+    this._fx = fx;
+  }
+
+  _applyShaders(T, t, pop) {
+    const on = !!this.shaders;
+    if (on && !this._fx) this._makeShaders();
+    if (on !== this._fxOn) {
+      this._fxOn = on;
+      const fx = this._fx;
+      this._coin.filters = on ? [fx.molten] : null;
+      this._layers[0].filters = on ? [fx.hazeBack] : null;
+      this._front.pc.filters = on ? [fx.hazeFront] : null;
+      if (!on) { this._scene.filters = null; this._shockOn = false; }
+    }
+    if (!on) return;
+    const fx = this._fx;
+
+    // монета раскаляется на замахе, вспыхивает на ударе и остывает
+    const m = fx.molten.resources.fx.uniforms;
+    m.uTime = t;
+    m.uIdle = 0.42 + 0.08 * Math.sin(t * 2.3);
+    m.uHeat = T < 0.18 ? 0.5 * (T / 0.18) : T < 99 ? Math.exp(-(T - 0.18) * 1.8) : 0;
+
+    // марево сильнее в момент удара
+    for (const h of [fx.hazeBack, fx.hazeFront]) {
+      const u = h.resources.fx.uniforms;
+      u.uTime = t; u.uStrength = 0.008 + 0.014 * pop;
+    }
+
+    // ударная волна живёт 0,8 с после удара; в остальное время фильтр снят и ничего не стоит
+    const shock = T >= 0.18 && T < 0.98;
+    if (shock !== this._shockOn) { this._shockOn = shock; this._scene.filters = shock ? [fx.shock] : null; }
+    if (shock) {
+      const u = (T - 0.18) / 0.8, k = 1 - u;
+      const s = fx.shock.resources.fx.uniforms;
+      s.uRadius = 0.07 + 0.5 * easeOutCubic(u);
+      s.uWidth = 0.045 + 0.06 * u;
+      s.uAmp = 0.04 * Math.pow(k, 1.5);
+      s.uSplit = 0.012 * k * k;
+      s.uGlow = 0.55 * k * k;
+    }
+  }
+
   destroy(options) {
     // общие текстуры не уничтожаем: их используют другие экземпляры
+    if (this._fx) for (const f of Object.values(this._fx)) f.destroy();
     super.destroy({ children: true, texture: false, textureSource: false, ...(typeof options === 'object' ? options : {}) });
   }
 }
@@ -986,9 +1320,10 @@ fx.play();
 const genBytes = [64 * 64, 64 * 96, 128 * 24, 256 * 256, 256 * 256, 256 * 256, 96 * 512].reduce((s, v) => s + v * 4, 0);
 $('vram').textContent = fmtMB(coin.width * coin.height * 4 + genBytes);
 
-const work = []; let last = 0, fpsT = 0, fpsN = 0;
+const work = []; let last = 0, fpsT = 0, fpsN = 0, paused = false;
 function frame(now) {
   requestAnimationFrame(frame);
+  if (paused) { last = now; return; }
   const dt = last ? (now - last) / 1000 : 1 / 60; last = now;
   const t0 = performance.now();
   fx.update(dt);
@@ -1007,6 +1342,12 @@ const replay = () => fx.play();
 $('again').addEventListener('click', replay);
 $('stage').addEventListener('click', replay);
 $('stage').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); replay(); } });
+$('shaders').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  fx.shaders = b.dataset.s === '1';
+  for (const x of $('shaders').children) x.setAttribute('aria-pressed', String(x === b));
+  fx.play();
+});
 $('motion').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   fx.motion = b.dataset.m;
@@ -1021,7 +1362,8 @@ $('density').addEventListener('click', (e) => {
 
 // test hook: deterministic still at a moment of the win
 window.__vs = {
-  at(t) { fx.loop = false; fx.warmUp(0.5); fx.play(); fx.warmUp(t); app.renderer.render(app.stage); fx.loop = true; return fx.particleCount; },
+  resume() { paused = false; },
+  at(t) { paused = true; fx.loop = false; fx.warmUp(0.5); fx.play(); fx.warmUp(t); app.renderer.render(app.stage); fx.loop = true; return fx.particleCount; },
   bench(n = 600) { let s = 0, peak = 0; fx.play(); for (let k = 0; k < n; k++) { const a = performance.now(); fx.update(1 / 60); s += performance.now() - a; peak = Math.max(peak, fx.particleCount); } return { simMs: s / n, peak }; },
 };
 </script>
