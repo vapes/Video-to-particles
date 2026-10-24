@@ -1,8 +1,5 @@
 import { MegaWin } from './mega-win.js';
 
-// буквы и цифры рисуются при создании сцены — шрифт должен быть уже загружен
-await document.fonts.load('900 170px "Montserrat"');
-
 const fx = new MegaWin({ amount: 1358856, background: false });
 fx.scale.set(app.screen.width / MegaWin.WIDTH);   // сцена нарисована в 1280×720
 app.stage.addChild(fx);

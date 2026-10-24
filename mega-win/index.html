@@ -8,7 +8,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Montserrat:wght@900&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
 <style>
 /* Layout: one column read top to bottom — the generator's video, the same win as live particles, then the code to paste. */
 :root {
@@ -155,15 +155,11 @@ pre.tall { max-height: 460px; overflow: auto; }
     <h2 id="h-code">Как вставить в проект на Pixi 8</h2>
     <ol class="steps">
       <li>Положи модуль <code>mega-win.js</code> рядом с кодом сцены.</li>
-      <li>Загрузи шрифт надписи до создания сцены: буквы и цифры рисуются в canvas при создании.</li>
       <li>Масштабируй сцену под экран: она нарисована в 1280×720. Вызывай <code>update()</code> в тикере, а <code>play()</code> — когда выпал выигрыш.</li>
     </ol>
     <div class="code">
       <div class="code-head"><div><div class="name">scene.js</div><div class="meta">подключение</div></div><button type="button" class="copy" data-for="code-usage">Скопировать</button></div>
       <pre id="code-usage"><span class="k">import</span> { MegaWin } <span class="k">from</span> <span class="s">'./mega-win.js'</span>;
-
-<span class="c">// буквы и цифры рисуются при создании сцены — шрифт должен быть уже загружен</span>
-<span class="k">await</span> document.fonts.load(<span class="s">'900 170px "Montserrat"'</span>);
 
 <span class="k">const</span> fx = <span class="k">new</span> MegaWin({ amount: <span class="n">1358856</span>, background: <span class="k">false</span> });
 fx.scale.set(app.screen.width / MegaWin.WIDTH);   <span class="c">// сцена нарисована в 1280×720</span>
@@ -177,7 +173,7 @@ fx.play();
 <span class="c">// fx.destroy();</span></pre>
     </div>
     <div class="code">
-      <div class="code-head"><div><div class="name">mega-win.js</div><div class="meta">658 строк · 35 КБ, в gzip 11 КБ</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
+      <div class="code-head"><div><div class="name">mega-win.js</div><div class="meta">659 строк · 35 КБ, в gzip 11 КБ</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
       <pre id="code-module" class="tall"><span class="c">// mega-win.js — сцена «MEGA WIN» на 10 секунд, собранная кодом. Pixi 8.</span>
 <span class="c">// Ни одной внешней картинки: лучи, нити, монеты, звёзды, буквы и цифры рисуются</span>
 <span class="c">// в canvas при первом создании, дальше всё считается частицами и лентами каждый кадр.</span>
@@ -298,25 +294,26 @@ fx.play();
   <span class="k">return</span> TEX;
 }
 
-<span class="c">// золотая объёмная буква или цифра: выдавливание вниз, градиент, тонкая обводка, свечение</span>
+<span class="c">// золотая буква или цифра обычным шрифтом: гладкий градиент, мягкая тень и свечение, без обводки</span>
 <span class="k">function</span> goldGlyph(ch, size, font) {
   <span class="k">const</span> probe = document.createElement(<span class="s">'canvas'</span>).getContext(<span class="s">'2d'</span>);
-  probe.font = <span class="s">`900 ${size}px ${font}`</span>;
+  probe.font = <span class="s">`bold ${size}px ${font}`</span>;
   <span class="k">const</span> tw = Math.ceil(probe.measureText(ch).width);
-  <span class="k">const</span> depth = Math.round(size * <span class="n">0.07</span>), pad = Math.round(size * <span class="n">0.22</span>);
+  <span class="k">const</span> pad = Math.round(size * <span class="n">0.22</span>);
   <span class="k">const</span> w = tw + pad * <span class="n">2</span>, h = Math.round(size * <span class="n">1.25</span>) + pad * <span class="n">2</span>;
   <span class="k">const</span> tex = canvasTex(w, h, (g) =&gt; {
-    g.font = <span class="s">`900 ${size}px ${font}`</span>;
+    g.font = <span class="s">`bold ${size}px ${font}`</span>;
     g.textBaseline = <span class="s">'alphabetic'</span>; g.textAlign = <span class="s">'left'</span>;
     <span class="k">const</span> x = pad, y = pad + size * <span class="n">0.98</span>;
-    g.shadowColor = <span class="s">'rgba(255,170,40,0.35)'</span>; g.shadowBlur = size * <span class="n">0.07</span>;
-    <span class="k">for</span> (<span class="k">let</span> i = depth; i &gt;= <span class="n">1</span>; i--) { g.fillStyle = i &gt; depth * <span class="n">0.5</span> ? <span class="s">'#4a2c06'</span> : <span class="s">'#7a4e0e'</span>; g.fillText(ch, x + i * <span class="n">0.25</span>, y + i); }
-    g.shadowBlur = <span class="n">0</span>;
-    <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, y - size * <span class="n">0.78</span>, <span class="n">0</span>, y);
-    lg.addColorStop(<span class="n">0</span>, <span class="s">'#fffbe0'</span>); lg.addColorStop(<span class="n">0.3</span>, <span class="s">'#ffe17a'</span>); lg.addColorStop(<span class="n">0.52</span>, <span class="s">'#e7a72c'</span>);
-    lg.addColorStop(<span class="n">0.62</span>, <span class="s">'#b8761a'</span>); lg.addColorStop(<span class="n">0.8</span>, <span class="s">'#f2c24a'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'#fff0b0'</span>);
-    g.fillStyle = lg; g.fillText(ch, x, y);
-    g.lineWidth = Math.max(<span class="n">1.5</span>, size * <span class="n">0.012</span>); g.strokeStyle = <span class="s">'rgba(110,64,8,0.9)'</span>; g.strokeText(ch, x, y);
+    <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, y - size * <span class="n">0.75</span>, <span class="n">0</span>, y);
+    lg.addColorStop(<span class="n">0</span>, <span class="s">'#fff7d6'</span>); lg.addColorStop(<span class="n">0.45</span>, <span class="s">'#ffd76a'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'#e09a2a'</span>);
+    g.fillStyle = lg;
+    g.shadowColor = <span class="s">'rgba(255,170,40,0.45)'</span>; g.shadowBlur = size * <span class="n">0.14</span>;            <span class="c">// тёплое свечение</span>
+    g.fillText(ch, x, y);
+    g.shadowColor = <span class="s">'rgba(40,20,0,0.7)'</span>; g.shadowBlur = size * <span class="n">0.05</span>; g.shadowOffsetY = size * <span class="n">0.04</span>;   <span class="c">// тень даёт объём</span>
+    g.fillText(ch, x, y);
+    g.shadowColor = <span class="s">'transparent'</span>; g.shadowBlur = <span class="n">0</span>; g.shadowOffsetY = <span class="n">0</span>;
+    g.fillText(ch, x, y);
   });
   <span class="k">return</span> { tex, w: tw, h };
 }
@@ -410,9 +407,9 @@ fx.play();
    * @param {number}  [o.density=1]      множитель частиц: 0.5 — экономно, 1.5 — максимум
    * @param {boolean} [o.loop=false]     повторять сцену каждые 10 с
    * @param {boolean} [o.background=true] тёмная подложка; false — сцена поверх твоей игры
-   * @param {string}  [o.fontFamily]     шрифт надписи и цифр; загрузи его заранее (document.fonts.load)
+   * @param {string}  [o.fontFamily]     шрифт надписи и цифр, по умолчанию системный; свой веб-шрифт загрузи заранее
    */</span>
-  constructor({ amount = <span class="n">1358856</span>, density = <span class="n">1</span>, loop = <span class="k">false</span>, background = <span class="k">true</span>, fontFamily = <span class="s">'"Montserrat", "Arial Black", Impact, sans-serif'</span> } = {}) {
+  constructor({ amount = <span class="n">1358856</span>, density = <span class="n">1</span>, loop = <span class="k">false</span>, background = <span class="k">true</span>, fontFamily = <span class="s">'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif'</span> } = {}) {
     <span class="k">super</span>();
     <span class="k">const</span> T = textures();
     <span class="k">this</span>.amount = amount;
@@ -963,25 +960,26 @@ function textures() {
   return TEX;
 }
 
-// золотая объёмная буква или цифра: выдавливание вниз, градиент, тонкая обводка, свечение
+// золотая буква или цифра обычным шрифтом: гладкий градиент, мягкая тень и свечение, без обводки
 function goldGlyph(ch, size, font) {
   const probe = document.createElement('canvas').getContext('2d');
-  probe.font = `900 ${size}px ${font}`;
+  probe.font = `bold ${size}px ${font}`;
   const tw = Math.ceil(probe.measureText(ch).width);
-  const depth = Math.round(size * 0.07), pad = Math.round(size * 0.22);
+  const pad = Math.round(size * 0.22);
   const w = tw + pad * 2, h = Math.round(size * 1.25) + pad * 2;
   const tex = canvasTex(w, h, (g) => {
-    g.font = `900 ${size}px ${font}`;
+    g.font = `bold ${size}px ${font}`;
     g.textBaseline = 'alphabetic'; g.textAlign = 'left';
     const x = pad, y = pad + size * 0.98;
-    g.shadowColor = 'rgba(255,170,40,0.35)'; g.shadowBlur = size * 0.07;
-    for (let i = depth; i >= 1; i--) { g.fillStyle = i > depth * 0.5 ? '#4a2c06' : '#7a4e0e'; g.fillText(ch, x + i * 0.25, y + i); }
-    g.shadowBlur = 0;
-    const lg = g.createLinearGradient(0, y - size * 0.78, 0, y);
-    lg.addColorStop(0, '#fffbe0'); lg.addColorStop(0.3, '#ffe17a'); lg.addColorStop(0.52, '#e7a72c');
-    lg.addColorStop(0.62, '#b8761a'); lg.addColorStop(0.8, '#f2c24a'); lg.addColorStop(1, '#fff0b0');
-    g.fillStyle = lg; g.fillText(ch, x, y);
-    g.lineWidth = Math.max(1.5, size * 0.012); g.strokeStyle = 'rgba(110,64,8,0.9)'; g.strokeText(ch, x, y);
+    const lg = g.createLinearGradient(0, y - size * 0.75, 0, y);
+    lg.addColorStop(0, '#fff7d6'); lg.addColorStop(0.45, '#ffd76a'); lg.addColorStop(1, '#e09a2a');
+    g.fillStyle = lg;
+    g.shadowColor = 'rgba(255,170,40,0.45)'; g.shadowBlur = size * 0.14;            // тёплое свечение
+    g.fillText(ch, x, y);
+    g.shadowColor = 'rgba(40,20,0,0.7)'; g.shadowBlur = size * 0.05; g.shadowOffsetY = size * 0.04;   // тень даёт объём
+    g.fillText(ch, x, y);
+    g.shadowColor = 'transparent'; g.shadowBlur = 0; g.shadowOffsetY = 0;
+    g.fillText(ch, x, y);
   });
   return { tex, w: tw, h };
 }
@@ -1075,9 +1073,9 @@ export class MegaWin extends Container {
    * @param {number}  [o.density=1]      множитель частиц: 0.5 — экономно, 1.5 — максимум
    * @param {boolean} [o.loop=false]     повторять сцену каждые 10 с
    * @param {boolean} [o.background=true] тёмная подложка; false — сцена поверх твоей игры
-   * @param {string}  [o.fontFamily]     шрифт надписи и цифр; загрузи его заранее (document.fonts.load)
+   * @param {string}  [o.fontFamily]     шрифт надписи и цифр, по умолчанию системный; свой веб-шрифт загрузи заранее
    */
-  constructor({ amount = 1358856, density = 1, loop = false, background = true, fontFamily = '"Montserrat", "Arial Black", Impact, sans-serif' } = {}) {
+  constructor({ amount = 1358856, density = 1, loop = false, background = true, fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif' } = {}) {
     super();
     const T = textures();
     this.amount = amount;
@@ -1524,7 +1522,6 @@ const stage = $('stage');
 const app = new Application();
 await app.init({ width: 1280, height: 720, backgroundAlpha: 0, antialias: false, preference: 'webgl', resolution: 1, autoStart: false });
 stage.prepend(app.canvas);
-try { await document.fonts.load('900 170px "Montserrat"'); } catch (e) {}
 
 const fx = new MegaWin({ amount: 1358856, density: 1, loop: true });
 app.stage.addChild(fx);

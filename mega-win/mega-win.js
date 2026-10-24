@@ -118,25 +118,26 @@ function textures() {
   return TEX;
 }
 
-// золотая объёмная буква или цифра: выдавливание вниз, градиент, тонкая обводка, свечение
+// золотая буква или цифра обычным шрифтом: гладкий градиент, мягкая тень и свечение, без обводки
 function goldGlyph(ch, size, font) {
   const probe = document.createElement('canvas').getContext('2d');
-  probe.font = `900 ${size}px ${font}`;
+  probe.font = `bold ${size}px ${font}`;
   const tw = Math.ceil(probe.measureText(ch).width);
-  const depth = Math.round(size * 0.07), pad = Math.round(size * 0.22);
+  const pad = Math.round(size * 0.22);
   const w = tw + pad * 2, h = Math.round(size * 1.25) + pad * 2;
   const tex = canvasTex(w, h, (g) => {
-    g.font = `900 ${size}px ${font}`;
+    g.font = `bold ${size}px ${font}`;
     g.textBaseline = 'alphabetic'; g.textAlign = 'left';
     const x = pad, y = pad + size * 0.98;
-    g.shadowColor = 'rgba(255,170,40,0.35)'; g.shadowBlur = size * 0.07;
-    for (let i = depth; i >= 1; i--) { g.fillStyle = i > depth * 0.5 ? '#4a2c06' : '#7a4e0e'; g.fillText(ch, x + i * 0.25, y + i); }
-    g.shadowBlur = 0;
-    const lg = g.createLinearGradient(0, y - size * 0.78, 0, y);
-    lg.addColorStop(0, '#fffbe0'); lg.addColorStop(0.3, '#ffe17a'); lg.addColorStop(0.52, '#e7a72c');
-    lg.addColorStop(0.62, '#b8761a'); lg.addColorStop(0.8, '#f2c24a'); lg.addColorStop(1, '#fff0b0');
-    g.fillStyle = lg; g.fillText(ch, x, y);
-    g.lineWidth = Math.max(1.5, size * 0.012); g.strokeStyle = 'rgba(110,64,8,0.9)'; g.strokeText(ch, x, y);
+    const lg = g.createLinearGradient(0, y - size * 0.75, 0, y);
+    lg.addColorStop(0, '#fff7d6'); lg.addColorStop(0.45, '#ffd76a'); lg.addColorStop(1, '#e09a2a');
+    g.fillStyle = lg;
+    g.shadowColor = 'rgba(255,170,40,0.45)'; g.shadowBlur = size * 0.14;            // тёплое свечение
+    g.fillText(ch, x, y);
+    g.shadowColor = 'rgba(40,20,0,0.7)'; g.shadowBlur = size * 0.05; g.shadowOffsetY = size * 0.04;   // тень даёт объём
+    g.fillText(ch, x, y);
+    g.shadowColor = 'transparent'; g.shadowBlur = 0; g.shadowOffsetY = 0;
+    g.fillText(ch, x, y);
   });
   return { tex, w: tw, h };
 }
@@ -230,9 +231,9 @@ export class MegaWin extends Container {
    * @param {number}  [o.density=1]      множитель частиц: 0.5 — экономно, 1.5 — максимум
    * @param {boolean} [o.loop=false]     повторять сцену каждые 10 с
    * @param {boolean} [o.background=true] тёмная подложка; false — сцена поверх твоей игры
-   * @param {string}  [o.fontFamily]     шрифт надписи и цифр; загрузи его заранее (document.fonts.load)
+   * @param {string}  [o.fontFamily]     шрифт надписи и цифр, по умолчанию системный; свой веб-шрифт загрузи заранее
    */
-  constructor({ amount = 1358856, density = 1, loop = false, background = true, fontFamily = '"Montserrat", "Arial Black", Impact, sans-serif' } = {}) {
+  constructor({ amount = 1358856, density = 1, loop = false, background = true, fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif' } = {}) {
     super();
     const T = textures();
     this.amount = amount;

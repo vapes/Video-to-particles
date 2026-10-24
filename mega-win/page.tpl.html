@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Montserrat:wght@900&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
 <style>
 /* Layout: one column read top to bottom — the generator's video, the same win as live particles, then the code to paste. */
 :root {
@@ -147,7 +147,6 @@ pre.tall { max-height: 460px; overflow: auto; }
     <h2 id="h-code">Как вставить в проект на Pixi 8</h2>
     <ol class="steps">
       <li>Положи модуль <code>mega-win.js</code> рядом с кодом сцены.</li>
-      <li>Загрузи шрифт надписи до создания сцены: буквы и цифры рисуются в canvas при создании.</li>
       <li>Масштабируй сцену под экран: она нарисована в 1280×720. Вызывай <code>update()</code> в тикере, а <code>play()</code> — когда выпал выигрыш.</li>
     </ol>
     <div class="code">
@@ -187,7 +186,6 @@ const stage = $('stage');
 const app = new Application();
 await app.init({ width: 1280, height: 720, backgroundAlpha: 0, antialias: false, preference: 'webgl', resolution: 1, autoStart: false });
 stage.prepend(app.canvas);
-try { await document.fonts.load('900 170px "Montserrat"'); } catch (e) {}
 
 const fx = new MegaWin({ amount: 1358856, density: 1, loop: true });
 app.stage.addChild(fx);
