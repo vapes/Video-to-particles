@@ -1,0 +1,142 @@
+{
+ "w": 692,
+ "h": 720,
+ "unique": 119,
+ "ticks": 300,
+ "duration": 4.994667000000001,
+ "seq": {
+  "bytes": 7938018,
+  "naive60_bytes": 19865839,
+  "png": 38011072,
+  "psnr": 43.980594635009766,
+  "psnr_min": 40.58331298828125,
+  "vram": 237162240,
+  "naive60_vram": 597888000
+ },
+ "delta_variants": [
+  {
+   "tile": 16,
+   "max_thr": 2,
+   "mean_thr": 255,
+   "total": 12314794,
+   "key": 16551,
+   "atlases": 11683395,
+   "n_atlases": 14,
+   "json_gz": 614848,
+   "unique_tiles": 135423,
+   "changed_pct": 60.972436226673516,
+   "ops_max": 1959,
+   "psnr": 43.77033615112305,
+   "psnr_min": 40.53191375732422,
+   "vram": 220784640,
+   "label": "strict"
+  },
+  {
+   "tile": 16,
+   "max_thr": 16,
+   "mean_thr": 2.0,
+   "total": 12253186,
+   "key": 16551,
+   "atlases": 11625419,
+   "n_atlases": 13,
+   "json_gz": 611216,
+   "unique_tiles": 133205,
+   "changed_pct": 60.02182845403184,
+   "ops_max": 1951,
+   "psnr": 43.722557067871094,
+   "psnr_min": 40.39935302734375,
+   "vram": 217194240,
+   "label": "lenient"
+  },
+  {
+   "tile": 32,
+   "max_thr": 2,
+   "mean_thr": 255,
+   "total": 10215807,
+   "key": 16563,
+   "atlases": 10036452,
+   "n_atlases": 13,
+   "json_gz": 162792,
+   "unique_tiles": 39929,
+   "changed_pct": 69.53507067729618,
+   "ops_max": 506,
+   "psnr": 43.869075775146484,
+   "psnr_min": 40.51185989379883,
+   "vram": 211422208,
+   "label": "strict"
+  },
+  {
+   "tile": 32,
+   "max_thr": 16,
+   "mean_thr": 2.0,
+   "total": 10191181,
+   "key": 16563,
+   "atlases": 10011994,
+   "n_atlases": 13,
+   "json_gz": 162624,
+   "unique_tiles": 39632,
+   "changed_pct": 69.03764989616131,
+   "ops_max": 506,
+   "psnr": 43.84733200073242,
+   "psnr_min": 40.454986572265625,
+   "vram": 209680384,
+   "label": "lenient"
+  },
+  {
+   "tile": 64,
+   "max_thr": 2,
+   "mean_thr": 255,
+   "total": 9243372,
+   "key": 16607,
+   "atlases": 9181114,
+   "n_atlases": 14,
+   "json_gz": 45651,
+   "unique_tiles": 12237,
+   "changed_pct": 80.64329738058552,
+   "ops_max": 132,
+   "psnr": 43.920066833496094,
+   "psnr_min": 40.44148254394531,
+   "vram": 230716416,
+   "label": "strict"
+  },
+  {
+   "tile": 64,
+   "max_thr": 16,
+   "mean_thr": 2.0,
+   "total": 9236386,
+   "key": 16607,
+   "atlases": 9174453,
+   "n_atlases": 14,
+   "json_gz": 45326,
+   "unique_tiles": 12195,
+   "changed_pct": 80.37365177195686,
+   "ops_max": 132,
+   "psnr": 43.910179138183594,
+   "psnr_min": 40.45506286621094,
+   "vram": 230161536,
+   "label": "lenient"
+  }
+ ],
+ "video_src_noaudio": 1090954,
+ "video": [
+  {
+   "crf": 14,
+   "bytes": 7256819,
+   "psnr": 39.357784271240234,
+   "psnr_min": 35.099769592285156
+  },
+  {
+   "crf": 18,
+   "bytes": 4963308,
+   "psnr": 37.67010498046875,
+   "psnr_min": 33.607913970947266
+  },
+  {
+   "crf": 22,
+   "bytes": 3340779,
+   "psnr": 35.81843566894531,
+   "psnr_min": 31.95866584777832
+  }
+ ],
+ "video_alpha": true
+}

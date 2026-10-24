@@ -1,0 +1,234 @@
+<title>Видео против частиц</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: one column read top to bottom — the generator's video, the same win as live particles, then the code to paste. */
+:root {
+  --bg: #F3F0F5;
+  --surface: #FFFFFF;
+  --fg: #1C1620;
+  --muted: #665D6C;
+  --line: #DED7E3;
+  --ember: #C2410C;
+  --good: #1C7348;
+  --stage: #07050C;
+  --code-bg: #FBF8FC;
+  --code-fg: #2A2230;
+  --tok-com: #7D7385;
+  --tok-str: #A0450C;
+  --tok-kw: #7A2E8C;
+  --tok-num: #1C6B8A;
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #110D14; --surface: #1A151E; --fg: #F1EBF3; --muted: #A69CAD; --line: #30283A;
+    --ember: #FB923C; --good: #4FC58C; --stage: #050309;
+    --code-bg: #15111A; --code-fg: #E9E2EE; --tok-com: #8C8296; --tok-str: #F4A261; --tok-kw: #D8A6F0; --tok-num: #7CC8E8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #110D14; --surface: #1A151E; --fg: #F1EBF3; --muted: #A69CAD; --line: #30283A;
+  --ember: #FB923C; --good: #4FC58C; --stage: #050309;
+  --code-bg: #15111A; --code-fg: #E9E2EE; --tok-com: #8C8296; --tok-str: #F4A261; --tok-kw: #D8A6F0; --tok-num: #7CC8E8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+main { max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; }
+main > * { min-width: 0; }
+section { display: grid; gap: 12px; min-width: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 6vw, 34px); line-height: 1.1; margin: 0 0 8px; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-family: var(--font-display); font-weight: 500; font-size: 18px; margin: 0; text-wrap: balance; }
+h3 { font-size: 14px; font-weight: 600; margin: 0; }
+p { margin: 0; max-width: 65ch; }
+.lead { color: var(--muted); }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember); margin-bottom: 6px; }
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.frame { position: relative; width: 100%; border-radius: 18px; overflow: hidden; background: var(--stage); }
+.frame.video { aspect-ratio: 692 / 720; max-width: 520px; justify-self: center; }
+.frame.video video { width: 100%; height: 100%; display: block; object-fit: cover; }
+.frame.fx { aspect-ratio: 1; max-width: 520px; justify-self: center; cursor: pointer; touch-action: manipulation; }
+.frame.fx canvas { width: 100% !important; height: 100% !important; display: block; }
+.play {
+  position: absolute; inset: 0; margin: auto; width: max-content; height: max-content;
+  font: 600 15px/1 var(--font-body); color: #fff; background: rgba(194, 65, 12, 0.92); border: 0; border-radius: 999px; padding: 13px 20px; cursor: pointer;
+}
+.hud {
+  position: absolute; left: 10px; top: 10px; font: 600 11px/1.35 var(--font-mono);
+  color: #F5E9D6; background: rgba(10, 6, 14, 0.55); border: 1px solid rgba(255, 220, 170, 0.18);
+  padding: 5px 8px; border-radius: 7px; font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.facts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); justify-content: center; }
+.facts b { color: var(--fg); font-weight: 600; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.facts b.good { color: var(--good); }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.btn { font: 600 14px/1 var(--font-body); color: #fff; background: var(--ember); border: 0; border-radius: 10px; padding: 11px 16px; cursor: pointer; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: 500 14px/1 var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 9px 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn:focus-visible, .seg button:focus-visible, .play:focus-visible, .copy:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 65ch; }
+.code { border: 1px solid var(--line); border-radius: 12px; background: var(--code-bg); overflow: hidden; min-width: 0; }
+.code-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); }
+.code-head .name { font: 600 12px/1.2 var(--font-mono); color: var(--fg); }
+.code-head .meta { font: 400 11px/1.2 var(--font-mono); color: var(--muted); }
+.copy { font: 600 12px/1 var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; cursor: pointer; flex: none; }
+pre { margin: 0; padding: 12px 14px; overflow-x: auto; font: 400 12px/1.55 var(--font-mono); color: var(--code-fg); tab-size: 2; }
+pre.tall { max-height: 460px; overflow: auto; }
+.c { color: var(--tok-com); } .s { color: var(--tok-str); } .k { color: var(--tok-kw); } .n { color: var(--tok-num); }
+.note { font-size: 12.5px; color: var(--muted); max-width: 65ch; }
+@media (prefers-reduced-motion: reduce) { .btn, .copy { transition: none; } }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Pixi 8 · одна и та же монета</div>
+    <h1>Видео против частиц</h1>
+    <p class="lead">Сверху ролик из генератора как есть. Ниже тот же выигрыш, собранный из одной картинки монеты и частиц в реальном времени. В самом низу код, который запускает эту сцену, — его можно вставить в проект.</p>
+  </header>
+
+  <section aria-labelledby="h-video">
+    <div class="label">1 · Видео</div>
+    <h2 id="h-video">Ролик из генератора</h2>
+    <div class="frame video">
+      <video id="vid" src="clip.mp4" autoplay muted loop playsinline preload="auto"></video>
+      <button type="button" class="play" id="vid-play" hidden>Включить видео</button>
+    </div>
+    <div class="facts"><span>Файл <b>0,99 МБ</b></span><span>Длина <b>5 с</b>, 24 fps</span><span>Видеопамять <b>1,90 МБ</b></span></div>
+  </section>
+
+  <section aria-labelledby="h-fx">
+    <div class="label">2 · Частицы</div>
+    <h2 id="h-fx">Монета + код</h2>
+    <div class="frame fx" id="stage" role="button" tabindex="0" aria-label="Запустить выигрыш ещё раз"><div class="hud" id="hud">загрузка…</div></div>
+    <div class="facts"><span>Монета <b class="good">0,03 МБ</b></span><span>Модуль <b class="good">__MODULE_MB__</b></span><span>Длина <b>бесконечно</b></span><span>Видеопамять <b id="vram">…</b></span></div>
+    <div class="controls">
+      <button type="button" class="btn" id="again">Ещё раз</button>
+      <div class="seg" id="density" aria-label="Количество частиц">
+        <button type="button" id="d-low" data-v="0.5" aria-pressed="false">Экономно</button>
+        <button type="button" id="d-mid" data-v="1" aria-pressed="true">Норма</button>
+        <button type="button" id="d-high" data-v="2" aria-pressed="false">Максимум</button>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-code">
+    <div class="label">3 · Код</div>
+    <h2 id="h-code">Как вставить в проект на Pixi 8</h2>
+    <ol class="steps">
+      <li>Положи модуль <code>fire-coin-win.js</code> рядом с кодом сцены.</li>
+      <li>Подготовь круглую текстуру символа с прозрачным фоном.</li>
+      <li>Создай эффект, добавь на сцену и вызывай <code>update()</code> в тикере, а <code>play()</code> — когда выпал выигрыш.</li>
+    </ol>
+    <div class="code">
+      <div class="code-head"><div><div class="name">scene.js</div><div class="meta">подключение</div></div><button type="button" class="copy" data-for="code-usage">Скопировать</button></div>
+      <pre id="code-usage">__USAGE_HTML__</pre>
+    </div>
+    <div class="code">
+      <div class="code-head"><div><div class="name">fire-coin-win.js</div><div class="meta">__MODULE_LINES__ строк · __MODULE_KB__</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
+      <pre id="code-module" class="tall">__MODULE_HTML__</pre>
+    </div>
+    <p class="note">Проверено на Pixi 8.22. Эффект рисует монету сам, поэтому исходный спрайт символа на время выигрыша прячь. Текстуры частиц создаются один раз и общие для всех экземпляров. Для Pixi 7 нужна адаптация: там другой ParticleContainer.</p>
+  </section>
+</main>
+
+<script type="module">
+// ----- the module exactly as shown above (only the pixi.js import points to the CDN here)
+__MODULE_JS__
+
+// ----- this page's demo
+import { Application, ImageSource } from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';   // Sprite and Texture come from the module's import
+
+const $ = (id) => document.getElementById(id);
+const fmtMB = (b) => (b / 1048576).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' МБ';
+
+// video: show a play button if the phone refuses to autoplay (iOS low power mode)
+const vid = $('vid');
+setTimeout(() => { if (vid.paused) $('vid-play').hidden = false; }, 1200);
+$('vid-play').addEventListener('click', () => { vid.play().then(() => { $('vid-play').hidden = true; }).catch(() => {}); });
+
+// copy buttons
+for (const b of document.querySelectorAll('.copy')) {
+  b.addEventListener('click', () => {
+    const pre = $(b.dataset.for);
+    const done = () => { b.textContent = 'Скопировано'; setTimeout(() => { b.textContent = 'Скопировать'; }, 1600); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'Выделено, скопируй вручную'; };
+    try { navigator.clipboard.writeText(pre.textContent).then(done, fallback); } catch (e) { fallback(); }
+  });
+}
+
+// particles stage
+const SIZE = 720;
+const app = new Application();
+await app.init({ width: SIZE, height: SIZE, backgroundAlpha: 0, antialias: false, preference: 'webgl',
+  resolution: Math.min(window.devicePixelRatio || 1, 2), autoDensity: true, autoStart: false });
+$('stage').prepend(app.canvas);
+
+const bgCanvas = document.createElement('canvas'); bgCanvas.width = bgCanvas.height = 256;
+{ const g = bgCanvas.getContext('2d'); const gr = g.createRadialGradient(128, 118, 0, 128, 128, 184);
+  gr.addColorStop(0, '#2a1426'); gr.addColorStop(0.45, '#140a1a'); gr.addColorStop(1, '#040208'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); }
+const bg = new Sprite(Texture.from(bgCanvas)); bg.width = bg.height = SIZE + 80; bg.position.set(-40);
+app.stage.addChild(bg);
+
+const coinBuf = await (await fetch('coin.avif')).arrayBuffer();
+const coinBmp = await createImageBitmap(new Blob([coinBuf], { type: 'image/avif' }));
+const coin = new Texture({ source: new ImageSource({ resource: coinBmp, alphaMode: 'premultiply-alpha-on-upload' }) });
+
+const fx = new FireCoinWin({ coin, diameter: 400, density: 1, loop: true });
+fx.position.set(SIZE / 2, SIZE / 2);
+app.stage.addChild(fx);
+fx.warmUp(1);
+fx.play();
+
+// texture memory of everything the effect holds: coin + generated textures + background
+const genBytes = [64 * 64, 64 * 96, 128 * 24, 256 * 256, 256 * 256, 256 * 256, 96 * 512].reduce((s, v) => s + v * 4, 0);
+$('vram').textContent = fmtMB(coin.width * coin.height * 4 + genBytes);
+
+const work = []; let last = 0, fpsT = 0, fpsN = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = last ? (now - last) / 1000 : 1 / 60; last = now;
+  const t0 = performance.now();
+  fx.update(dt);
+  app.renderer.render(app.stage);
+  work.push(performance.now() - t0); if (work.length > 120) work.shift();
+  fpsN++;
+  if (now - fpsT > 500) {
+    const fps = fpsN * 1000 / (now - fpsT); fpsT = now; fpsN = 0;
+    const avg = work.reduce((s, v) => s + v, 0) / work.length;
+    $('hud').textContent = `${fps.toFixed(0)} fps · кадр ${avg.toFixed(1).replace('.', ',')} мс · частиц ${fx.particleCount}`;
+  }
+}
+requestAnimationFrame(frame);
+
+const replay = () => fx.play();
+$('again').addEventListener('click', replay);
+$('stage').addEventListener('click', replay);
+$('stage').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); replay(); } });
+$('density').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  fx.density = +b.dataset.v;
+  for (const x of $('density').children) x.setAttribute('aria-pressed', String(x === b));
+});
+
+// test hook: deterministic still at a moment of the win
+window.__vs = {
+  at(t) { fx.loop = false; fx.warmUp(0.5); fx.play(); fx.warmUp(t); app.renderer.render(app.stage); fx.loop = true; return fx.particleCount; },
+  bench(n = 600) { let s = 0, peak = 0; fx.play(); for (let k = 0; k < n; k++) { const a = performance.now(); fx.update(1 / 60); s += performance.now() - a; peak = Math.max(peak, fx.particleCount); } return { simMs: s / n, peak }; },
+};
+</script>

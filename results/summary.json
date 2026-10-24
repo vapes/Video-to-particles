@@ -1,0 +1,96 @@
+{
+ "s1_sparkles": {
+  "seq": {
+   "bytes": 3371256,
+   "psnr": 39.0,
+   "vram": 125829120
+  },
+  "delta": {
+   "bytes": 706527,
+   "changed": 10.4,
+   "psnr": 38.9,
+   "vram": 18400832
+  },
+  "video": {
+   "mp4": 176964,
+   "webm": 133748,
+   "vram": 2097152
+  }
+ },
+ "s2_shine": {
+  "seq": {
+   "bytes": 3890415,
+   "psnr": 38.4,
+   "vram": 125829120
+  },
+  "delta": {
+   "bytes": 1828027,
+   "changed": 48.9,
+   "psnr": 38.3,
+   "vram": 49707008
+  },
+  "video": {
+   "mp4": 400204,
+   "webm": 256091,
+   "vram": 2097152
+  }
+ },
+ "s3_bounce": {
+  "seq": {
+   "bytes": 3115534,
+   "psnr": 39.2,
+   "vram": 125829120
+  },
+  "delta": {
+   "bytes": 2071744,
+   "changed": 62.5,
+   "psnr": 39.1,
+   "vram": 52319744
+  },
+  "video": {
+   "mp4": 826314,
+   "webm": 569950,
+   "vram": 2097152
+  }
+ },
+ "clip": {
+  "note": "692\u00d7720, 119 \u043a\u0430\u0434\u0440\u043e\u0432 24 fps, 5.0 \u0441",
+  "seq": {
+   "bytes": 4158822,
+   "naive60": 10443750,
+   "psnr": 41.4,
+   "vram": 237162240
+  },
+  "delta": {
+   "bytes": 4837823,
+   "changed": 82.2,
+   "psnr": 40.9,
+   "vram": 241259136,
+   "tile": 64,
+   "label": "lenient"
+  },
+  "video": {
+   "mp4": 1034784,
+   "webm": 1034784,
+   "vram": 1992960,
+   "original": true,
+   "reencode": [
+    {
+     "crf": 16,
+     "bytes": 3273109,
+     "psnr": 40.0
+    },
+    {
+     "crf": 20,
+     "bytes": 2100479,
+     "psnr": 38.3
+    },
+    {
+     "crf": 24,
+     "bytes": 1345723,
+     "psnr": 36.5
+    }
+   ]
+  }
+ }
+}

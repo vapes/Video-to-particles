@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Тайл-дельты в Pixi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow lab-bench column — player on top, live measurements, then static size table and verdict. */
+:root {
+  --bg: #F4F2F6;
+  --surface: #FFFFFF;
+  --fg: #1D1822;
+  --muted: #675F6E;
+  --line: #E0DAE5;
+  --ruby: #A8143C;
+  --gold: #9A6A0C;
+  --good: #1C7348;
+  --chk-a: #E9E5EE;
+  --chk-b: #F8F6FA;
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131016; --surface: #1C1820; --fg: #EFEAF3; --muted: #A79EAE; --line: #322B38;
+    --ruby: #F2587E; --gold: #E5B24E; --good: #4FC58C; --chk-a: #221D27; --chk-b: #2A2430;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131016; --surface: #1C1820; --fg: #EFEAF3; --muted: #A79EAE; --line: #322B38;
+  --ruby: #F2587E; --gold: #E5B24E; --good: #4FC58C; --chk-a: #221D27; --chk-b: #2A2430;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+main { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+main > * { min-width: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 5.4vw, 32px); line-height: 1.15; margin: 0 0 8px; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-family: var(--font-display); font-weight: 500; font-size: 17px; margin: 0 0 12px; text-wrap: balance; }
+p { margin: 0; max-width: 65ch; }
+.lead { color: var(--muted); }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ruby); margin-bottom: 6px; }
+
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button {
+  font: 500 14px/1 var(--font-body); color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 999px; padding: 9px 14px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.seg button:focus-visible, .run:focus-visible { outline: 2px solid var(--ruby); outline-offset: 2px; }
+.controls { display: grid; gap: 10px; }
+.ctl-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+
+.stage {
+  position: relative; width: 100%; max-width: 420px; aspect-ratio: 1; margin: 4px auto 0;
+  border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
+  background-color: var(--chk-b);
+  background-image: conic-gradient(var(--chk-a) 25%, transparent 0 50%, var(--chk-a) 0 75%, transparent 0);
+  background-size: 24px 24px;
+}
+.stage canvas { width: 100% !important; height: 100% !important; display: block; }
+.hud {
+  position: absolute; left: 8px; bottom: 8px; font: 600 11px/1.3 var(--font-mono);
+  background: color-mix(in srgb, var(--surface) 85%, transparent); color: var(--fg);
+  padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.what { font-size: 13px; color: var(--muted); text-align: center; margin-top: 8px; min-height: 1.5em; }
+
+.run {
+  font: 600 15px/1 var(--font-body); color: #fff; background: var(--ruby); border: 0;
+  border-radius: 10px; padding: 14px 18px; cursor: pointer; width: 100%;
+}
+.run:disabled { opacity: 0.55; cursor: progress; }
+.status { font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 1.5em; }
+
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 9px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 130px; }
+thead th { font-weight: 600; font-size: 12px; color: var(--muted); background: color-mix(in srgb, var(--line) 35%, var(--surface)); }
+tbody tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.best { color: var(--good); font-weight: 600; }
+td.worst { color: var(--ruby); }
+.note { font-size: 12.5px; color: var(--muted); margin-top: 8px; max-width: 65ch; }
+.note.warn { color: var(--gold); }
+.sub { font-size: 11.5px; color: var(--muted); }
+
+.verdict { display: grid; gap: 12px; }
+.verdict li { margin-bottom: 6px; }
+.verdict ul { margin: 0; padding-left: 20px; max-width: 65ch; }
+.tag { font: 600 11px/1 var(--font-mono); padding: 3px 6px; border-radius: 4px; border: 1px solid currentColor; }
+.tag.yes { color: var(--good); } .tag.no { color: var(--ruby); } .tag.mid { color: var(--gold); }
+.vid { position: fixed; left: 0; top: 0; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .run { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Pixi 8 · игра на 60 fps</div>
+    <h1>Тайл-дельты против AVIF-секвенции</h1>
+    <p class="lead">Три синтетические анимации символа 512×512 и настоящий ролик «Монета в огне» в трёх упаковках. Плеер тайл-дельт рисует ключевой кадр, а дальше обновляет только изменившиеся квадраты в одной RenderTexture.</p>
+  </header>
+
+  <section class="controls" aria-label="Плеер">
+    <div>
+      <div class="ctl-label">Анимация</div>
+      <div class="seg" id="scn">
+        <button type="button" id="scn-s1" data-v="s1_sparkles" aria-pressed="true">Искры</button>
+        <button type="button" id="scn-s2" data-v="s2_shine" aria-pressed="false">Блик и свечение</button>
+        <button type="button" id="scn-s3" data-v="s3_bounce" aria-pressed="false">Прыжок</button>
+        <button type="button" id="scn-clip" data-v="clip" aria-pressed="false">Монета в огне</button>
+      </div>
+    </div>
+    <div>
+      <div class="ctl-label">Упаковка</div>
+      <div class="seg" id="mode">
+        <button type="button" id="mode-seq" data-v="seq" aria-pressed="false">Секвенция AVIF</button>
+        <button type="button" id="mode-delta" data-v="delta" aria-pressed="true">Тайл-дельты</button>
+        <button type="button" id="mode-video" data-v="video" aria-pressed="false">Видео</button>
+        <button type="button" id="mode-wc" data-v="wc" aria-pressed="false" hidden>H.264 через WebCodecs</button>
+      </div>
+    </div>
+    <div class="stage" id="stage"><div class="hud" id="hud">загрузка…</div></div>
+    <div class="what" id="what"></div>
+  </section>
+
+  <section aria-label="Замер на устройстве">
+    <h2>Замер на этом устройстве</h2>
+    <button type="button" class="run" id="run">Замерить все три упаковки</button>
+    <p class="note warn" id="run-note" hidden>Секвенция этого ролика занимает около 226 МБ видеопамяти. На слабом телефоне вкладка может перезагрузиться, это тоже результат.</p>
+    <div class="status" id="status">Около 15 секунд. Каждая упаковка грузится заново и играет 4 секунды.</div>
+    <div class="tbl-wrap" id="live-wrap" hidden>
+      <table id="live"></table>
+    </div>
+    <p class="note">«Работа кадра» включает обновление, отрисовку и ожидание GPU (gl.finish), поэтому она выше, чем в обычной игре. Видеопамять посчитана по размерам текстур, память декодера видео в неё не входит.</p>
+  </section>
+
+  <section aria-label="Размеры">
+    <h2>Сколько весит при одинаковом качестве</h2>
+    <div class="tbl-wrap"><table id="sizes"></table></div>
+    <p class="note">Синтетика: качество сверено по PSNR с исходными кадрами (38–39 дБ, видео на 0,3–1 дБ ниже), секвенция упакована в спрайтшиты 2048². «Монета в огне»: видео — это исходный файл без звука, секвенция и тайл-дельты — его кадры в AVIF (41 дБ, на глаз без потерь). JSON с операциями учтён в сжатом gzip виде.</p>
+  </section>
+
+  <section aria-label="Видеопамять">
+    <h2>Сколько занимает в видеопамяти</h2>
+    <div class="tbl-wrap"><table id="vram"></table></div>
+    <p class="note">Секвенция держит в GPU все кадры сразу. Тайл-дельты держат ключевой кадр, атласы тайлов и одну RenderTexture. Видео держит один кадр, память декодера сюда не входит.</p>
+  </section>
+
+  <section class="verdict" aria-label="Вывод">
+    <h2>Стоит ли того</h2>
+    <ul>
+      <li><span class="tag no">нет</span> На «Монете в огне» тайл-дельты весят 4,61 МБ, больше обычной AVIF-секвенции (3,97 МБ). Огонь, искры и движение камеры меняют 82 % тайлов каждый кадр, а шум генерации портит даже «статичный» фон.</li>
+      <li><span class="tag no">нет</span> Секвенция этого ролика держит в GPU 226 МБ, тайл-дельты 230 МБ. Если честно выгрузить 60 fps (300 кадров), выйдет 9,96 МБ файлов и 570 МБ видеопамяти.</li>
+      <li><span class="tag yes">да</span> Сам mp4 без звука весит 0,99 МБ и держит в GPU один кадр (1,9 МБ). Для полноэкранных эффектов из генерации оставлять видео как есть.</li>
+      <li><span class="tag yes">да</span> Тот же поток H.264 можно играть как секвенцию через WebCodecs: 0,99 МБ, кадры декодируются прямо в текстуру Pixi по таймингу игры, без video-элемента и его ограничений на автозапуск. Перекодировать ролик в любые кадры значит увеличить его в 4 раза.</li>
+      <li><span class="tag mid">зависит</span> Тайл-дельты окупаются только на локальной анимации с прозрачным фоном: на синтетике выигрыш ×4,8 на искрах, ×2,1 на блике, ×1,5 на прыжке.</li>
+    </ul>
+  </section>
+
+  <video class="vid" id="vid" muted playsinline loop preload="auto"></video>
+</main>
+
+<script type="module">
+import {
+  Application, Texture, ImageSource, Rectangle, Sprite, Container, RenderTexture,
+  ParticleContainer, Particle, VideoSource, Geometry, Mesh, Shader
+} from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
+
+const SUMMARY = {"s1_sparkles":{"seq":{"bytes":3371256,"psnr":39.0,"vram":125829120},"delta":{"bytes":706527,"changed":10.4,"psnr":38.9,"vram":18400832},"video":{"mp4":176964,"webm":133748,"vram":2097152}},"s2_shine":{"seq":{"bytes":3890415,"psnr":38.4,"vram":125829120},"delta":{"bytes":1828027,"changed":48.9,"psnr":38.3,"vram":49707008},"video":{"mp4":400204,"webm":256091,"vram":2097152}},"s3_bounce":{"seq":{"bytes":3115534,"psnr":39.2,"vram":125829120},"delta":{"bytes":2071744,"changed":62.5,"psnr":39.1,"vram":52319744},"video":{"mp4":826314,"webm":569950,"vram":2097152}},"clip":{"note":"692×720, 24 fps, 5 с","seq":{"bytes":4158822,"naive60":10443750,"psnr":41.4,"vram":237162240},"delta":{"bytes":4837823,"changed":82.2,"psnr":40.9,"vram":241259136,"tile":64,"label":"lenient"},"video":{"mp4":1034784,"webm":1034784,"vram":1992960,"original":true,"reencode":[{"crf":16,"bytes":3273109,"psnr":40.0},{"crf":20,"bytes":2100479,"psnr":38.3},{"crf":24,"bytes":1345723,"psnr":36.5}]}}};
+const SCN = {
+  s1_sparkles: { name: 'Искры', alpha: true, webm: true },
+  s2_shine: { name: 'Блик и свечение', alpha: true, webm: true },
+  s3_bounce: { name: 'Прыжок', alpha: true, webm: true },
+  clip: { name: 'Монета в огне', alpha: false, webm: false, rotate: true, modes: ['seq', 'delta', 'video', 'wc'] },
+};
+const MODE_NAMES = { seq: 'Секвенция AVIF', delta: 'Тайл-дельты', video: 'Видео', wc: 'WebCodecs' };
+const modesOf = (scn) => SCN[scn].modes || ['seq', 'delta', 'video'];
+
+const $ = (id) => document.getElementById(id);
+const fmtMB = (b) => (b / 1048576).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' МБ';
+const fmtMB1 = (b) => (b / 1048576).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' МБ';
+const fmtMs = (v) => v == null ? '—' : v.toLocaleString('ru-RU', { maximumFractionDigits: v < 10 ? 1 : 0 }) + ' мс';
+
+const videoEl = $('vid');
+const MP4_OK = !!videoEl.canPlayType('video/mp4; codecs="avc1.640020"');
+const useMp4 = (scn) => MP4_OK || !SCN[scn].webm;
+const videoUrl = (scn) => `${scn}/video.${useMp4(scn) ? 'mp4' : 'webm'}`;
+const videoBytes = (scn) => SUMMARY[scn].video[useMp4(scn) ? 'mp4' : 'webm'];
+
+// ---------------------------------------------------------------- Pixi
+const app = new Application();
+await app.init({ width: 512, height: 512, backgroundAlpha: 0, antialias: false, preference: 'webgl', autoStart: false, resolution: 1 });
+$('stage').prepend(app.canvas);
+const renderer = app.renderer;
+const gl = renderer.gl;
+
+async function fetchBuf(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.arrayBuffer(); }
+async function timed(fn) { const t = performance.now(); const v = await fn(); return [v, performance.now() - t]; }
+
+async function decodeAll(urls) {
+  const bufs = await Promise.all(urls.map(fetchBuf));
+  const bytes = bufs.reduce((s, b) => s + b.byteLength, 0);
+  const [bmps, decodeMs] = await timed(() => Promise.all(bufs.map((b) => createImageBitmap(new Blob([b], { type: 'image/avif' })))));
+  return { bmps, bytes, decodeMs };
+}
+function uploadAll(sources) {
+  const t = performance.now();
+  for (const s of sources) renderer.texture.initSource(s);
+  gl.finish();
+  return performance.now() - t;
+}
+const toSource = (bmp) => new ImageSource({ resource: bmp, alphaMode: 'premultiply-alpha-on-upload' });
+
+// ---- plain sequence: one texture per frame (or per spritesheet cell), swap it every tick
+async function loadSeq(scn) {
+  const meta = await (await fetch(`${scn}/seq/seq.json`)).json();
+  const { bmps, bytes, decodeMs } = await decodeAll(meta.sheets.map((s) => `${scn}/seq/${s.file}`));
+  const t = performance.now();
+  const sources = bmps.map(toSource);
+  const frames = [];
+  for (let i = 0; i < meta.frames; i++) {
+    const sh = Math.floor(i / meta.perSheet), k = i % meta.perSheet;
+    const r = Math.floor(k / meta.cols), c = k % meta.cols;
+    frames.push(new Texture({ source: sources[sh], frame: new Rectangle(c * meta.w, r * meta.h, meta.w, meta.h) }));
+  }
+  const prepMs = performance.now() - t;
+  const uploadMs = uploadAll(sources);
+  const sprite = new Sprite(frames[0]);
+  const many = meta.sheets.length > 12;
+  return {
+    display: sprite, bytes, decodeMs, prepMs, uploadMs, viewW: meta.w, viewH: meta.h,
+    frames: meta.frames, ticks: meta.ticks || null,
+    vram: meta.sheets.reduce((s, x) => s + x.w * x.h * 4, 0),
+    what: `${meta.sheets.length} ${many ? 'файлов-кадров' : 'спрайтшитов'}, ${fmtMB(bytes)}`,
+    update(i) { sprite.texture = frames[i]; return i; },
+    destroy() { sprite.destroy(); frames.forEach((f) => f.destroy(false)); sources.forEach((s) => s.destroy()); bmps.forEach((b) => b.close?.()); },
+  };
+}
+
+// ---- tile delta: keyframe + changed tiles written into one RenderTexture
+async function loadDelta(scn) {
+  const meta = await (await fetch(`${scn}/delta/delta.json`)).json();
+  const jsonBytes = JSON.stringify(meta).length;
+  const urls = [`${scn}/delta/${meta.key}`, ...meta.atlases.map((a) => `${scn}/delta/${a.file}`)];
+  const { bmps, bytes, decodeMs } = await decodeAll(urls);
+  const t = performance.now();
+  const sources = bmps.map(toSource);
+  const keyTex = new Texture({ source: sources[0] });
+  const atlasTex = sources.slice(1).map((s) => new Texture({ source: s }));
+  const T = meta.tile, cell = meta.cell, pad = meta.pad, tx = meta.w / T;
+  const viewW = meta.viewW || meta.w, viewH = meta.viewH || meta.h;
+  const N = meta.frames;
+
+  const rt = RenderTexture.create({ width: meta.w, height: meta.h });
+  const keySprite = new Sprite(keyTex); keySprite.blendMode = 'none';
+  const keyRoot = new Container(); keyRoot.addChild(keySprite);
+  const root = new Container();
+  const pcs = atlasTex.map((tex) => {
+    const pc = new ParticleContainer({ texture: tex, dynamicProperties: { position: false, vertex: false, rotation: false, uvs: false, color: false } });
+    pc.blendMode = 'none';
+    root.addChild(pc);
+    return pc;
+  });
+  const cellTex = new Map();
+  const getTex = (a, c) => {
+    const key = a * 1e6 + c;
+    let tex = cellTex.get(key);
+    if (!tex) {
+      const r = Math.floor(c / meta.perRow), cc = c % meta.perRow;
+      tex = new Texture({ source: atlasTex[a].source, frame: new Rectangle(cc * cell + pad, r * cell + pad, T, T) });
+      cellTex.set(key, tex);
+    }
+    return tex;
+  };
+  const frames = meta.ops.map((ops) => {
+    const per = atlasTex.map(() => []);
+    for (let k = 0; k < ops.length; k += 3) {
+      const a = ops[k], d = ops[k + 2];
+      per[a].push(new Particle({ texture: getTex(a, ops[k + 1]), x: (d % tx) * T, y: Math.floor(d / tx) * T }));
+    }
+    return per;
+  });
+  const prepMs = performance.now() - t;
+  const uploadMs = uploadAll(sources);
+
+  let cur = -1;
+  let stepsLast = 0;
+  const step = (i) => {
+    if (i === 0) {
+      renderer.render({ container: keyRoot, target: rt, clear: true });
+    } else {
+      const per = frames[i];
+      for (let a = 0; a < pcs.length; a++) {
+        pcs[a].particleChildren = per[a];
+        pcs[a].visible = per[a].length > 0;
+        pcs[a].update();
+      }
+      renderer.render({ container: root, target: rt, clear: false });
+    }
+    cur = i;
+  };
+  const viewTex = new Texture({ source: rt.source, frame: new Rectangle(0, 0, viewW, viewH) });
+  const display = new Sprite(viewTex);
+  return {
+    display, bytes: bytes + jsonBytes, decodeMs, prepMs, uploadMs, viewW, viewH,
+    frames: N, ticks: meta.ticks || null,
+    vram: sources.reduce((s, x) => s + x.width * x.height * 4, 0) + meta.w * meta.h * 4,
+    what: `ключ + ${meta.atlases.length} атласа тайлов ${T}×${T}, ${fmtMB(bytes + jsonBytes)}`,
+    // apply every delta between the shown frame and the target: deltas cannot be skipped
+    update(target) {
+      let n = 0;
+      if (cur < 0) { step(0); n++; }
+      while (cur !== target && n < N) { step((cur + 1) % N); n++; }
+      stepsLast = n;
+      return cur;
+    },
+    get steps() { return stepsLast; },
+    destroy() {
+      display.destroy(); viewTex.destroy(false); rt.destroy(true); keySprite.destroy(); root.destroy({ children: true });
+      cellTex.forEach((x) => x.destroy(false)); sources.forEach((s) => s.destroy()); bmps.forEach((b) => b.close?.());
+    },
+  };
+}
+
+// ---- video: stacked alpha (colour on top, alpha below, joined in a tiny shader) or plain opaque video
+const VERT = `in vec2 aPosition; in vec2 aUV; out vec2 vUV;
+uniform mat3 uProjectionMatrix; uniform mat3 uWorldTransformMatrix; uniform mat3 uTransformMatrix;
+void main(){ mat3 mvp = uProjectionMatrix * uWorldTransformMatrix * uTransformMatrix;
+  gl_Position = vec4((mvp * vec3(aPosition, 1.0)).xy, 0.0, 1.0); vUV = aUV; }`;
+const FRAG = `in vec2 vUV; uniform sampler2D uTexture;
+void main(){ vec3 rgb = texture(uTexture, vec2(vUV.x, vUV.y * 0.5)).rgb;
+  float a = texture(uTexture, vec2(vUV.x, 0.5 + vUV.y * 0.5)).r;
+  gl_FragColor = vec4(rgb, a); }`;
+
+function primeVideo(scn) {
+  // runs synchronously inside the tap so iOS lets this element play later
+  if (!videoEl.src.endsWith(videoUrl(scn))) videoEl.src = videoUrl(scn);
+  const p = videoEl.play();
+  videoEl.pause();
+  p?.catch(() => {});
+}
+
+async function loadVideo(scn) {
+  const t = performance.now();
+  if (!videoEl.src.endsWith(videoUrl(scn))) videoEl.src = videoUrl(scn);
+  videoEl.currentTime = 0;
+  await new Promise((res, rej) => {
+    if (videoEl.readyState >= 2) return res();
+    videoEl.addEventListener('loadeddata', res, { once: true });
+    videoEl.addEventListener('error', () => rej(new Error('видео не загрузилось')), { once: true });
+  });
+  try { await videoEl.play(); } catch (e) { throw new Error('видео не запустилось (режим энергосбережения?)'); }
+  const decodeMs = performance.now() - t;
+  const src = new VideoSource({ resource: videoEl, autoPlay: false, autoLoad: false, updateFPS: 0 });
+  const tex = new Texture({ source: src });
+  const alpha = SCN[scn].alpha;
+  const rot = !!SCN[scn].rotate;   // the clip's frames are stored sideways; turn them like the phone gallery would
+  const vw = rot ? videoEl.videoHeight : videoEl.videoWidth;
+  const vh = rot ? videoEl.videoWidth : alpha ? videoEl.videoHeight / 2 : videoEl.videoHeight;
+  let display;
+  if (alpha) {
+    const geometry = new Geometry({
+      attributes: { aPosition: [0, 0, vw, 0, vw, vh, 0, vh], aUV: [0, 0, 1, 0, 1, 1, 0, 1] },
+      indexBuffer: [0, 1, 2, 0, 2, 3],
+    });
+    const shader = Shader.from({ gl: { vertex: VERT, fragment: FRAG }, resources: { uTexture: src } });
+    display = new Mesh({ geometry, shader });
+  } else {
+    display = new Sprite(tex);
+    if (rot) { display.rotation = Math.PI / 2; display.x = vw; }
+  }
+  const t2 = performance.now();
+  renderer.texture.initSource(src); gl.finish();
+  const uploadMs = performance.now() - t2;
+  // push every decoded video frame into the texture (one GPU upload per video frame, not per tick)
+  const hasRVFC = 'requestVideoFrameCallback' in videoEl;
+  let rvfc = 0, alive = true;
+  const onFrame = () => { if (!alive) return; src.update(); rvfc = videoEl.requestVideoFrameCallback(onFrame); };
+  if (hasRVFC) rvfc = videoEl.requestVideoFrameCallback(onFrame);
+  const q0 = videoEl.getVideoPlaybackQuality?.();
+  const ticks = Math.round(videoEl.duration * 60);
+  return {
+    display, bytes: videoBytes(scn), decodeMs, prepMs: 0, uploadMs, viewW: vw, viewH: vh,
+    vram: videoEl.videoWidth * videoEl.videoHeight * 4, frames: ticks, ticks: null, isVideo: true,
+    what: `${useMp4(scn) ? 'H.264' : 'VP9'}${alpha ? ', stacked alpha' : ''} ${vw}×${vh}${SUMMARY[scn].video.original ? ', оригинальный файл без звука' : ''}, ${fmtMB(videoBytes(scn))}`,
+    dropped0: q0 ? q0.droppedVideoFrames : 0,
+    update() { if (!hasRVFC) src.update(); return Math.floor(videoEl.currentTime * 60) % ticks; },
+    destroy() { alive = false; if (hasRVFC) videoEl.cancelVideoFrameCallback(rvfc); display.destroy(); tex.destroy(true); videoEl.pause(); },
+  };
+}
+
+// ---- WebCodecs: the generator's own H.264 stream decoded frame by frame straight into a Pixi texture.
+// No <video> element, no autoplay rules, no re-encoding: the file is the original compressed frames.
+function b64bytes(s) { return Uint8Array.from(atob(s), (c) => c.charCodeAt(0)); }
+let WC_UPLOAD_OK = null;
+function canUploadVideoFrame() {
+  if (WC_UPLOAD_OK !== null) return WC_UPLOAD_OK;
+  try {
+    const c = document.createElement('canvas'); c.width = c.height = 2;
+    const g = c.getContext('2d'); g.fillRect(0, 0, 2, 2);
+    const vf = new VideoFrame(c, { timestamp: 0 });
+    const t = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+    const tex = t.createTexture(); t.bindTexture(t.TEXTURE_2D, tex);
+    t.texImage2D(t.TEXTURE_2D, 0, t.RGBA, t.RGBA, t.UNSIGNED_BYTE, vf);
+    WC_UPLOAD_OK = t.getError() === 0;
+    vf.close(); t.getExtension('WEBGL_lose_context')?.loseContext();
+  } catch (e) { WC_UPLOAD_OK = false; }
+  return WC_UPLOAD_OK;
+}
+
+async function loadWebCodecs(scn) {
+  if (!('VideoDecoder' in window)) throw new Error('в этом браузере нет WebCodecs');
+  const meta = await (await fetch(`${scn}/wc/clip.json`)).json();
+  const data = new Uint8Array(await fetchBuf(`${scn}/${meta.file}`));
+  const t = performance.now();
+  const cfg = { codec: meta.codec, description: b64bytes(meta.description), codedWidth: meta.codedWidth, codedHeight: meta.codedHeight, optimizeForLatency: true };
+  const sup = await VideoDecoder.isConfigSupported(cfg);
+  if (!sup.supported) throw new Error(`декодер не принимает ${meta.codec}`);
+  const asBitmap = !canUploadVideoFrame();
+  const N = meta.frames.length, dur = meta.duration, AHEAD = 6;
+  const queue = [];
+  let err = null, pending = 0;
+  const closeImg = (img) => { try { img.close(); } catch (e) {} };
+  const decoder = new VideoDecoder({
+    output: (f) => {
+      const ts = f.timestamp;
+      if (!asBitmap) { queue.push({ ts, img: f }); return; }
+      pending++;
+      createImageBitmap(f).then((b) => { queue.push({ ts, img: b }); queue.sort((a, c) => a.ts - c.ts); })
+        .finally(() => { f.close(); pending--; });
+    },
+    error: (e) => { err = e; },
+  });
+  decoder.configure(cfg);
+  let fed = 0;
+  const feed = () => {
+    while (decoder.state === 'configured' && queue.length + pending + decoder.decodeQueueSize < AHEAD) {
+      const k = fed % N, loop = Math.floor(fed / N);
+      const [o, sz, key, ts] = meta.frames[k];
+      decoder.decode(new EncodedVideoChunk({ type: key ? 'key' : 'delta', timestamp: ts + loop * dur, data: data.subarray(o, o + sz) }));
+      fed++;
+    }
+  };
+  feed();
+  await new Promise((res, rej) => {
+    const poll = () => { if (err) return rej(new Error('ошибка декодера: ' + err.message)); if (queue.length) return res(); setTimeout(poll, 2); };
+    poll();
+  });
+  const decodeMs = performance.now() - t;
+  let cur = queue.shift();
+  const src = new ImageSource({ resource: cur.img, alphaMode: 'premultiply-alpha-on-upload' });
+  const tex = new Texture({ source: src });
+  const t2 = performance.now();
+  renderer.texture.initSource(src); gl.finish();
+  const uploadMs = performance.now() - t2;
+  const rot = !!SCN[scn].rotate;
+  const vw = rot ? meta.codedHeight : meta.codedWidth, vh = rot ? meta.codedWidth : meta.codedHeight;
+  const display = new Sprite(tex);
+  if (rot) { display.rotation = Math.PI / 2; display.x = vw; }
+  let late = 0;
+  return {
+    display, bytes: data.byteLength + JSON.stringify(meta).length, decodeMs, prepMs: 0, uploadMs, viewW: vw, viewH: vh,
+    vram: meta.codedWidth * meta.codedHeight * 4, frames: Math.round(dur / 1e6 * 60), ticks: null, isVideo: true,
+    what: `поток H.264 ${meta.codedWidth}×${meta.codedHeight} без перекодирования${asBitmap ? ' (через ImageBitmap)' : ''}, ${fmtMB(data.byteLength)}`,
+    get late() { return late; },
+    update() {
+      const tUs = (performance.now() - S.t0) * 1000;
+      let next = null;
+      while (queue.length && queue[0].ts <= tUs) { if (next) closeImg(next.img); next = queue.shift(); }
+      if (next) {
+        src.resource = next.img; src.update();
+        closeImg(cur.img); cur = next;
+      } else if (cur.ts + dur / N * 1.5 < tUs) {
+        late++;
+      }
+      feed();
+      return Math.floor(((cur.ts % dur) / 1e6) * 60);
+    },
+    destroy() {
+      try { decoder.close(); } catch (e) {}
+      display.destroy(); tex.destroy(true);
+      closeImg(cur.img); queue.forEach((q) => closeImg(q.img)); queue.length = 0;
+    },
+  };
+}
+
+const LOADERS = { seq: loadSeq, delta: loadDelta, video: loadVideo, wc: loadWebCodecs };
+
+// ---------------------------------------------------------------- loop
+const S = { player: null, t0: performance.now(), measure: null, frozen: null, fpsT: 0, fpsN: 0, fps: 0 };
+function tick(now) {
+  requestAnimationFrame(tick);
+  const p = S.player;
+  let label = 'загрузка…';
+  const t = performance.now();
+  if (p) {
+    const nTicks = p.ticks ? p.ticks.length : p.frames;
+    const tk = S.frozen ?? Math.floor((now - S.t0) * 0.06) % nTicks;
+    const target = p.ticks ? p.ticks[tk] : tk;
+    const shown = p.update(target);
+    label = p.isVideo ? `тик ${String(shown).padStart(3, '0')}` : p.ticks
+      ? `тик ${String(tk).padStart(3, '0')} · кадр ${String(shown).padStart(3, '0')}`
+      : `кадр ${String(shown).padStart(3, '0')}`;
+  }
+  renderer.render(app.stage);
+  const m = S.measure;
+  if (m) {
+    gl.finish();
+    m.work.push(performance.now() - t);
+    if (m.last) m.raf.push(now - m.last);
+    if (p?.steps > 1) m.catchup++;
+    m.last = now;
+    if (m.work.length >= m.n) { S.measure = null; m.done(); }
+  }
+  S.fpsN++;
+  if (now - S.fpsT > 500) { S.fps = S.fpsN * 1000 / (now - S.fpsT); S.fpsT = now; S.fpsN = 0; }
+  $('hud').textContent = p ? `${label} · ${S.fps.toFixed(0)} fps` : label;
+}
+requestAnimationFrame(tick);
+
+function measurePlayback(n = 240) {
+  return new Promise((done) => {
+    const m = { n, work: [], raf: [], last: 0, catchup: 0 };
+    m.done = () => done(m);
+    S.measure = m;
+  });
+}
+
+let current = { scn: 's1_sparkles', mode: 'delta' };
+let switching = Promise.resolve();
+async function setPlayer(scn, mode) {
+  if (S.player) { app.stage.removeChild(S.player.display); S.player.destroy(); S.player = null; }
+  const p = await LOADERS[mode](scn);
+  renderer.resize(p.viewW, p.viewH);
+  $('stage').style.aspectRatio = `${p.viewW} / ${p.viewH}`;
+  app.stage.addChild(p.display);
+  S.player = p;
+  S.t0 = performance.now();
+  $('what').textContent = `${MODE_NAMES[mode]}: ${p.what}`;
+  return p;
+}
+function show(scn, mode) {
+  if (!modesOf(scn).includes(mode)) mode = 'delta';
+  current = { scn, mode };
+  $('mode-wc').hidden = !modesOf(scn).includes('wc');
+  for (const b of $('scn').children) b.setAttribute('aria-pressed', String(b.dataset.v === scn));
+  for (const b of $('mode').children) b.setAttribute('aria-pressed', String(b.dataset.v === mode));
+  $('run-note').hidden = scn !== 'clip';
+  if (mode === 'video') primeVideo(scn);
+  switching = switching.then(() => setPlayer(scn, mode)).catch((e) => { $('what').textContent = e.message; });
+  return switching;
+}
+$('scn').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.v; if (v) show(v, current.mode); });
+$('mode').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.v; if (v) show(current.scn, v); });
+
+// ---------------------------------------------------------------- benchmark
+const pct = (arr, p) => { const s = [...arr].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
+const mean = (arr) => arr.reduce((s, v) => s + v, 0) / arr.length;
+
+async function bench(scn) {
+  const out = {};
+  for (const mode of modesOf(scn)) {
+    $('status').textContent = `${SCN[scn].name}: ${MODE_NAMES[mode]}…`;
+    try {
+      await switching;
+      const p = await setPlayer(scn, mode);
+      await new Promise((r) => setTimeout(r, 300));
+      const m = await measurePlayback(240);
+      const med = pct(m.raf, 0.5);
+      const q = mode === 'video' ? videoEl.getVideoPlaybackQuality?.() : null;
+      out[mode] = {
+        bytes: p.bytes, decodeMs: p.decodeMs, prepMs: p.prepMs, uploadMs: p.uploadMs, vram: p.vram,
+        workMean: mean(m.work), workP95: pct(m.work, 0.95), workMax: Math.max(...m.work),
+        longFrames: m.raf.filter((d) => d > med * 1.6).length, catchup: m.catchup, frames: m.work.length,
+        dropped: q ? q.droppedVideoFrames - p.dropped0 : mode === 'wc' ? p.late : null,
+      };
+    } catch (e) {
+      out[mode] = { error: e.message };
+    }
+  }
+  return out;
+}
+
+function renderLive(scn, r) {
+  const modes = modesOf(scn);
+  const rows = [
+    ['Скачать', (x) => x.bytes, fmtMB],
+    ['Декод картинок / видео до 1-го кадра', (x) => x.decodeMs, fmtMs],
+    ['Подготовка (текстуры, тайлы)', (x) => x.prepMs, fmtMs],
+    ['Загрузка в GPU', (x) => x.uploadMs, fmtMs],
+    ['Видеопамять', (x) => x.vram, fmtMB1],
+    ['Работа кадра, среднее', (x) => x.workMean, fmtMs],
+    ['Работа кадра, p95', (x) => x.workP95, fmtMs],
+    ['Длинные кадры из 240', (x) => x.longFrames, (v) => String(v)],
+    ['Потерянные или опоздавшие кадры видео', (x) => x.dropped, (v) => String(v)],
+  ];
+  let html = `<thead><tr><th>${SCN[scn].name}</th>${modes.map((m) => `<th>${MODE_NAMES[m]}</th>`).join('')}</tr></thead><tbody>`;
+  for (const [label, get, fmt] of rows) {
+    const vals = modes.map((m) => (r[m] && !r[m].error ? get(r[m]) : null));
+    const ok = vals.filter((v) => v != null);
+    const lo = Math.min(...ok), hi = Math.max(...ok);
+    html += `<tr><td>${label}</td>${vals.map((v) => {
+      if (v == null) return `<td class="num">—</td>`;
+      const cls = ok.length > 1 && hi > lo * 1.15 ? (v === lo ? ' best' : v === hi ? ' worst' : '') : '';
+      return `<td class="num${cls}">${fmt(v)}</td>`;
+    }).join('')}</tr>`;
+  }
+  $('live').innerHTML = html + '</tbody>';
+  $('live-wrap').hidden = false;
+  return modes.filter((m) => r[m]?.error).map((m) => `${MODE_NAMES[m]}: ${r[m].error}`);
+}
+
+$('run').addEventListener('click', async () => {
+  const btn = $('run');
+  btn.disabled = true;
+  primeVideo(current.scn);
+  const r = await bench(current.scn);
+  window.__lastBench = r;
+  const errs = renderLive(current.scn, r);
+  $('status').textContent = errs.length ? errs.join(' · ') : 'Готово. Зелёным — лучшее значение в строке, красным — худшее.';
+  await setPlayer(current.scn, current.mode);
+  btn.disabled = false;
+});
+
+// ---------------------------------------------------------------- static tables
+(function tables() {
+  let sz = `<thead><tr><th>Анимация</th><th>Изменено тайлов</th><th>Секвенция AVIF</th><th>Тайл-дельты</th><th>Видео</th></tr></thead><tbody>`;
+  let vr = `<thead><tr><th>Анимация</th><th>Секвенция AVIF</th><th>Тайл-дельты</th><th>Видео</th></tr></thead><tbody>`;
+  for (const [scn, s] of Object.entries(SUMMARY)) {
+    const v = useMp4(scn) ? s.video.mp4 : s.video.webm;
+    sz += `<tr><td>${SCN[scn].name}${s.note ? `<div class="sub">${s.note}</div>` : ''}</td><td class="num">${s.delta.changed.toLocaleString('ru-RU')} %</td>
+      <td class="num worst">${fmtMB(s.seq.bytes)}</td><td class="num">${fmtMB(s.delta.bytes)}</td>
+      <td class="num best">${fmtMB(v)}</td></tr>`;
+    vr += `<tr><td>${SCN[scn].name}</td><td class="num worst">${fmtMB1(s.seq.vram)}</td><td class="num">${fmtMB1(s.delta.vram)}</td>
+      <td class="num best">${fmtMB1(s.video.vram)}</td></tr>`;
+  }
+  $('sizes').innerHTML = sz + '</tbody>';
+  $('vram').innerHTML = vr + '</tbody>';
+})();
+
+// test hooks for automated checks
+window.__api = {
+  show, bench, get player() { return S.player; },
+  async capture(tk) {
+    S.frozen = tk;
+    const p = S.player;
+    p.update(p.ticks ? p.ticks[tk] : tk);
+    renderer.render(app.stage);
+    const { pixels, width, height } = renderer.extract.pixels(app.stage);
+    let bin = ''; const u = new Uint8Array(pixels.buffer, pixels.byteOffset, pixels.byteLength);
+    for (let k = 0; k < u.length; k += 0x8000) bin += String.fromCharCode.apply(null, u.subarray(k, k + 0x8000));
+    return { b64: btoa(bin), width, height };
+  },
+  resume() { S.frozen = null; },
+};
+show(current.scn, current.mode);
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+avif speed6 q70: sample 0.658 MB -> full est 3.91 MB, psnr 40.44  (3s)
+avif speed2 q70: sample 0.607 MB -> full est 3.61 MB, psnr 40.58  (45s)
+av1 video crf20: 2.61 MB, psnr 39.02 (min 35.03)  (42s)
+av1 video crf28: 1.77 MB, psnr 37.55 (min 33.62)  (38s)
+av1 video crf36: 1.10 MB, psnr 35.73 (min 31.84)  (35s)

@@ -1,0 +1,388 @@
+<script type="module">
+import {
+  Application, Texture, ImageSource, Rectangle, Sprite, Container, RenderTexture,
+  ParticleContainer, Particle, VideoSource, Geometry, Mesh, Shader
+} from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
+
+const SUMMARY = __SUMMARY__;
+const SCN = {
+  s1_sparkles: { name: 'Искры', alpha: true, webm: true },
+  s2_shine: { name: 'Блик и свечение', alpha: true, webm: true },
+  s3_bounce: { name: 'Прыжок', alpha: true, webm: true },
+  clip: { name: 'Монета в огне', alpha: false, webm: false },
+};
+const MODE_NAMES = { seq: 'Секвенция AVIF', delta: 'Тайл-дельты', video: 'Видео' };
+
+const $ = (id) => document.getElementById(id);
+const fmtMB = (b) => (b / 1048576).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' МБ';
+const fmtMB1 = (b) => (b / 1048576).toLocaleString('ru-RU', { maximumFractionDigits: b < 10 * 1048576 ? 1 : 0 }) + ' МБ';
+const fmtMs = (v) => v == null ? '—' : v.toLocaleString('ru-RU', { maximumFractionDigits: v < 10 ? 1 : 0 }) + ' мс';
+
+const videoEl = $('vid');
+const MP4_OK = !!videoEl.canPlayType('video/mp4; codecs="avc1.640020"');
+const useMp4 = (scn) => MP4_OK || !SCN[scn].webm;
+const videoUrl = (scn) => `${scn}/video.${useMp4(scn) ? 'mp4' : 'webm'}`;
+const videoBytes = (scn) => SUMMARY[scn].video[useMp4(scn) ? 'mp4' : 'webm'];
+
+// ---------------------------------------------------------------- Pixi
+const app = new Application();
+await app.init({ width: 512, height: 512, backgroundAlpha: 0, antialias: false, preference: 'webgl', autoStart: false, resolution: 1 });
+$('stage').prepend(app.canvas);
+const renderer = app.renderer;
+const gl = renderer.gl;
+
+async function fetchBuf(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.arrayBuffer(); }
+async function timed(fn) { const t = performance.now(); const v = await fn(); return [v, performance.now() - t]; }
+
+async function decodeAll(urls) {
+  const bufs = await Promise.all(urls.map(fetchBuf));
+  const bytes = bufs.reduce((s, b) => s + b.byteLength, 0);
+  const [bmps, decodeMs] = await timed(() => Promise.all(bufs.map((b) => createImageBitmap(new Blob([b], { type: 'image/avif' })))));
+  return { bmps, bytes, decodeMs };
+}
+function uploadAll(sources) {
+  const t = performance.now();
+  for (const s of sources) renderer.texture.initSource(s);
+  gl.finish();
+  return performance.now() - t;
+}
+const toSource = (bmp) => new ImageSource({ resource: bmp, alphaMode: 'premultiply-alpha-on-upload' });
+
+// ---- plain sequence: one texture per frame (or per spritesheet cell), swap it every tick
+async function loadSeq(scn) {
+  const meta = await (await fetch(`${scn}/seq/seq.json`)).json();
+  const { bmps, bytes, decodeMs } = await decodeAll(meta.sheets.map((s) => `${scn}/seq/${s.file}`));
+  const t = performance.now();
+  const sources = bmps.map(toSource);
+  const frames = [];
+  for (let i = 0; i < meta.frames; i++) {
+    const sh = Math.floor(i / meta.perSheet), k = i % meta.perSheet;
+    const r = Math.floor(k / meta.cols), c = k % meta.cols;
+    frames.push(new Texture({ source: sources[sh], frame: new Rectangle(c * meta.w, r * meta.h, meta.w, meta.h) }));
+  }
+  const prepMs = performance.now() - t;
+  const uploadMs = uploadAll(sources);
+  const sprite = new Sprite(frames[0]);
+  const many = meta.sheets.length > 12;
+  return {
+    display: sprite, bytes, decodeMs, prepMs, uploadMs, viewW: meta.w, viewH: meta.h,
+    frames: meta.frames, ticks: meta.ticks || null,
+    vram: meta.sheets.reduce((s, x) => s + x.w * x.h * 4, 0),
+    what: `${meta.sheets.length} ${many ? 'файлов-кадров' : 'спрайтшитов'}, ${fmtMB(bytes)}`,
+    update(i) { sprite.texture = frames[i]; return i; },
+    destroy() { sprite.destroy(); frames.forEach((f) => f.destroy(false)); sources.forEach((s) => s.destroy()); bmps.forEach((b) => b.close?.()); },
+  };
+}
+
+// ---- tile delta: keyframe + changed tiles written into one RenderTexture
+async function loadDelta(scn) {
+  const meta = await (await fetch(`${scn}/delta/delta.json`)).json();
+  const jsonBytes = JSON.stringify(meta).length;
+  const urls = [`${scn}/delta/${meta.key}`, ...meta.atlases.map((a) => `${scn}/delta/${a.file}`)];
+  const { bmps, bytes, decodeMs } = await decodeAll(urls);
+  const t = performance.now();
+  const sources = bmps.map(toSource);
+  const keyTex = new Texture({ source: sources[0] });
+  const atlasTex = sources.slice(1).map((s) => new Texture({ source: s }));
+  const T = meta.tile, cell = meta.cell, pad = meta.pad, tx = meta.w / T;
+  const viewW = meta.viewW || meta.w, viewH = meta.viewH || meta.h;
+  const N = meta.frames;
+
+  const rt = RenderTexture.create({ width: meta.w, height: meta.h });
+  const keySprite = new Sprite(keyTex); keySprite.blendMode = 'none';
+  const keyRoot = new Container(); keyRoot.addChild(keySprite);
+  const root = new Container();
+  const pcs = atlasTex.map((tex) => {
+    const pc = new ParticleContainer({ texture: tex, dynamicProperties: { position: false, vertex: false, rotation: false, uvs: false, color: false } });
+    pc.blendMode = 'none';
+    root.addChild(pc);
+    return pc;
+  });
+  const cellTex = new Map();
+  const getTex = (a, c) => {
+    const key = a * 1e6 + c;
+    let tex = cellTex.get(key);
+    if (!tex) {
+      const r = Math.floor(c / meta.perRow), cc = c % meta.perRow;
+      tex = new Texture({ source: atlasTex[a].source, frame: new Rectangle(cc * cell + pad, r * cell + pad, T, T) });
+      cellTex.set(key, tex);
+    }
+    return tex;
+  };
+  const frames = meta.ops.map((ops) => {
+    const per = atlasTex.map(() => []);
+    for (let k = 0; k < ops.length; k += 3) {
+      const a = ops[k], d = ops[k + 2];
+      per[a].push(new Particle({ texture: getTex(a, ops[k + 1]), x: (d % tx) * T, y: Math.floor(d / tx) * T }));
+    }
+    return per;
+  });
+  const prepMs = performance.now() - t;
+  const uploadMs = uploadAll(sources);
+
+  let cur = -1;
+  let stepsLast = 0;
+  const step = (i) => {
+    if (i === 0) {
+      renderer.render({ container: keyRoot, target: rt, clear: true });
+    } else {
+      const per = frames[i];
+      for (let a = 0; a < pcs.length; a++) {
+        pcs[a].particleChildren = per[a];
+        pcs[a].visible = per[a].length > 0;
+        pcs[a].update();
+      }
+      renderer.render({ container: root, target: rt, clear: false });
+    }
+    cur = i;
+  };
+  const viewTex = new Texture({ source: rt.source, frame: new Rectangle(0, 0, viewW, viewH) });
+  const display = new Sprite(viewTex);
+  return {
+    display, bytes: bytes + jsonBytes, decodeMs, prepMs, uploadMs, viewW, viewH,
+    frames: N, ticks: meta.ticks || null,
+    vram: sources.reduce((s, x) => s + x.width * x.height * 4, 0) + meta.w * meta.h * 4,
+    what: `ключ + ${meta.atlases.length} атласа тайлов ${T}×${T}, ${fmtMB(bytes + jsonBytes)}`,
+    // apply every delta between the shown frame and the target: deltas cannot be skipped
+    update(target) {
+      let n = 0;
+      if (cur < 0) { step(0); n++; }
+      while (cur !== target && n < N) { step((cur + 1) % N); n++; }
+      stepsLast = n;
+      return cur;
+    },
+    get steps() { return stepsLast; },
+    destroy() {
+      display.destroy(); viewTex.destroy(false); rt.destroy(true); keySprite.destroy(); root.destroy({ children: true });
+      cellTex.forEach((x) => x.destroy(false)); sources.forEach((s) => s.destroy()); bmps.forEach((b) => b.close?.());
+    },
+  };
+}
+
+// ---- video: stacked alpha (colour on top, alpha below, joined in a tiny shader) or plain opaque video
+const VERT = `in vec2 aPosition; in vec2 aUV; out vec2 vUV;
+uniform mat3 uProjectionMatrix; uniform mat3 uWorldTransformMatrix; uniform mat3 uTransformMatrix;
+void main(){ mat3 mvp = uProjectionMatrix * uWorldTransformMatrix * uTransformMatrix;
+  gl_Position = vec4((mvp * vec3(aPosition, 1.0)).xy, 0.0, 1.0); vUV = aUV; }`;
+const FRAG = `in vec2 vUV; uniform sampler2D uTexture;
+void main(){ vec3 rgb = texture(uTexture, vec2(vUV.x, vUV.y * 0.5)).rgb;
+  float a = texture(uTexture, vec2(vUV.x, 0.5 + vUV.y * 0.5)).r;
+  gl_FragColor = vec4(rgb, a); }`;
+
+function primeVideo(scn) {
+  // runs synchronously inside the tap so iOS lets this element play later
+  if (!videoEl.src.endsWith(videoUrl(scn))) videoEl.src = videoUrl(scn);
+  const p = videoEl.play();
+  videoEl.pause();
+  p?.catch(() => {});
+}
+
+async function loadVideo(scn) {
+  const t = performance.now();
+  if (!videoEl.src.endsWith(videoUrl(scn))) videoEl.src = videoUrl(scn);
+  videoEl.currentTime = 0;
+  await new Promise((res, rej) => {
+    if (videoEl.readyState >= 2) return res();
+    videoEl.addEventListener('loadeddata', res, { once: true });
+    videoEl.addEventListener('error', () => rej(new Error('видео не загрузилось')), { once: true });
+  });
+  try { await videoEl.play(); } catch (e) { throw new Error('видео не запустилось (режим энергосбережения?)'); }
+  const decodeMs = performance.now() - t;
+  const src = new VideoSource({ resource: videoEl, autoPlay: false, autoLoad: false, updateFPS: 0 });
+  const tex = new Texture({ source: src });
+  const alpha = SCN[scn].alpha;
+  const vw = videoEl.videoWidth, vh = alpha ? videoEl.videoHeight / 2 : videoEl.videoHeight;
+  let display;
+  if (alpha) {
+    const geometry = new Geometry({
+      attributes: { aPosition: [0, 0, vw, 0, vw, vh, 0, vh], aUV: [0, 0, 1, 0, 1, 1, 0, 1] },
+      indexBuffer: [0, 1, 2, 0, 2, 3],
+    });
+    const shader = Shader.from({ gl: { vertex: VERT, fragment: FRAG }, resources: { uTexture: src } });
+    display = new Mesh({ geometry, shader });
+  } else {
+    display = new Sprite(tex);
+  }
+  const t2 = performance.now();
+  renderer.texture.initSource(src); gl.finish();
+  const uploadMs = performance.now() - t2;
+  const q0 = videoEl.getVideoPlaybackQuality?.();
+  const ticks = Math.round(videoEl.duration * 60);
+  return {
+    display, bytes: videoBytes(scn), decodeMs, prepMs: 0, uploadMs, viewW: vw, viewH: vh,
+    vram: videoEl.videoWidth * videoEl.videoHeight * 4, frames: ticks, ticks: null, isVideo: true,
+    what: `${useMp4(scn) ? 'H.264' : 'VP9'}${alpha ? ', stacked alpha' : ''} ${videoEl.videoWidth}×${videoEl.videoHeight}, ${fmtMB(videoBytes(scn))}`,
+    dropped0: q0 ? q0.droppedVideoFrames : 0,
+    update() { return Math.floor(videoEl.currentTime * 60) % ticks; },
+    destroy() { display.destroy(); tex.destroy(true); videoEl.pause(); },
+  };
+}
+
+const LOADERS = { seq: loadSeq, delta: loadDelta, video: loadVideo };
+
+// ---------------------------------------------------------------- loop
+const S = { player: null, t0: performance.now(), measure: null, frozen: null, fpsT: 0, fpsN: 0, fps: 0 };
+function tick(now) {
+  requestAnimationFrame(tick);
+  const p = S.player;
+  let label = 'загрузка…';
+  const t = performance.now();
+  if (p) {
+    const nTicks = p.ticks ? p.ticks.length : p.frames;
+    const tk = S.frozen ?? Math.floor((now - S.t0) * 0.06) % nTicks;
+    const target = p.ticks ? p.ticks[tk] : tk;
+    const shown = p.update(target);
+    label = p.isVideo ? `тик ${String(shown).padStart(3, '0')}` : p.ticks
+      ? `тик ${String(tk).padStart(3, '0')} · кадр ${String(shown).padStart(3, '0')}`
+      : `кадр ${String(shown).padStart(3, '0')}`;
+  }
+  renderer.render(app.stage);
+  const m = S.measure;
+  if (m) {
+    gl.finish();
+    m.work.push(performance.now() - t);
+    if (m.last) m.raf.push(now - m.last);
+    if (p?.steps > 1) m.catchup++;
+    m.last = now;
+    if (m.work.length >= m.n) { S.measure = null; m.done(); }
+  }
+  S.fpsN++;
+  if (now - S.fpsT > 500) { S.fps = S.fpsN * 1000 / (now - S.fpsT); S.fpsT = now; S.fpsN = 0; }
+  $('hud').textContent = p ? `${label} · ${S.fps.toFixed(0)} fps` : label;
+}
+requestAnimationFrame(tick);
+
+function measurePlayback(n = 240) {
+  return new Promise((done) => {
+    const m = { n, work: [], raf: [], last: 0, catchup: 0 };
+    m.done = () => done(m);
+    S.measure = m;
+  });
+}
+
+let current = { scn: 's1_sparkles', mode: 'delta' };
+let switching = Promise.resolve();
+async function setPlayer(scn, mode) {
+  if (S.player) { app.stage.removeChild(S.player.display); S.player.destroy(); S.player = null; }
+  const p = await LOADERS[mode](scn);
+  renderer.resize(p.viewW, p.viewH);
+  $('stage').style.aspectRatio = `${p.viewW} / ${p.viewH}`;
+  app.stage.addChild(p.display);
+  S.player = p;
+  S.t0 = performance.now();
+  $('what').textContent = `${MODE_NAMES[mode]}: ${p.what}`;
+  return p;
+}
+function show(scn, mode) {
+  current = { scn, mode };
+  for (const b of $('scn').children) b.setAttribute('aria-pressed', String(b.dataset.v === scn));
+  for (const b of $('mode').children) b.setAttribute('aria-pressed', String(b.dataset.v === mode));
+  $('run-note').hidden = scn !== 'clip';
+  if (mode === 'video') primeVideo(scn);
+  switching = switching.then(() => setPlayer(scn, mode)).catch((e) => { $('what').textContent = e.message; });
+  return switching;
+}
+$('scn').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.v; if (v) show(v, current.mode); });
+$('mode').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.v; if (v) show(current.scn, v); });
+
+// ---------------------------------------------------------------- benchmark
+const pct = (arr, p) => { const s = [...arr].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
+const mean = (arr) => arr.reduce((s, v) => s + v, 0) / arr.length;
+
+async function bench(scn) {
+  const out = {};
+  for (const mode of ['seq', 'delta', 'video']) {
+    $('status').textContent = `${SCN[scn].name}: ${MODE_NAMES[mode]}…`;
+    try {
+      await switching;
+      const p = await setPlayer(scn, mode);
+      await new Promise((r) => setTimeout(r, 300));
+      const m = await measurePlayback(240);
+      const med = pct(m.raf, 0.5);
+      const q = mode === 'video' ? videoEl.getVideoPlaybackQuality?.() : null;
+      out[mode] = {
+        bytes: p.bytes, decodeMs: p.decodeMs, prepMs: p.prepMs, uploadMs: p.uploadMs, vram: p.vram,
+        workMean: mean(m.work), workP95: pct(m.work, 0.95), workMax: Math.max(...m.work),
+        longFrames: m.raf.filter((d) => d > med * 1.6).length, catchup: m.catchup, frames: m.work.length,
+        dropped: q ? q.droppedVideoFrames - p.dropped0 : null,
+      };
+    } catch (e) {
+      out[mode] = { error: e.message };
+    }
+  }
+  return out;
+}
+
+function renderLive(scn, r) {
+  const modes = ['seq', 'delta', 'video'];
+  const rows = [
+    ['Скачать', (x) => x.bytes, fmtMB],
+    ['Декод картинок / видео до 1-го кадра', (x) => x.decodeMs, fmtMs],
+    ['Подготовка (текстуры, тайлы)', (x) => x.prepMs, fmtMs],
+    ['Загрузка в GPU', (x) => x.uploadMs, fmtMs],
+    ['Видеопамять', (x) => x.vram, fmtMB1],
+    ['Работа кадра, среднее', (x) => x.workMean, fmtMs],
+    ['Работа кадра, p95', (x) => x.workP95, fmtMs],
+    ['Длинные кадры из 240', (x) => x.longFrames, (v) => String(v)],
+  ];
+  let html = `<thead><tr><th>${SCN[scn].name}</th>${modes.map((m) => `<th>${MODE_NAMES[m]}</th>`).join('')}</tr></thead><tbody>`;
+  for (const [label, get, fmt] of rows) {
+    const vals = modes.map((m) => (r[m] && !r[m].error ? get(r[m]) : null));
+    const ok = vals.filter((v) => v != null);
+    const lo = Math.min(...ok), hi = Math.max(...ok);
+    html += `<tr><td>${label}</td>${vals.map((v) => {
+      if (v == null) return `<td class="num">—</td>`;
+      const cls = ok.length > 1 && hi > lo * 1.15 ? (v === lo ? ' best' : v === hi ? ' worst' : '') : '';
+      return `<td class="num${cls}">${fmt(v)}</td>`;
+    }).join('')}</tr>`;
+  }
+  $('live').innerHTML = html + '</tbody>';
+  $('live-wrap').hidden = false;
+  return modes.filter((m) => r[m]?.error).map((m) => `${MODE_NAMES[m]}: ${r[m].error}`);
+}
+
+$('run').addEventListener('click', async () => {
+  const btn = $('run');
+  btn.disabled = true;
+  primeVideo(current.scn);
+  const r = await bench(current.scn);
+  window.__lastBench = r;
+  const errs = renderLive(current.scn, r);
+  $('status').textContent = errs.length ? errs.join(' · ') : 'Готово. Зелёным — лучшее значение в строке, красным — худшее.';
+  await setPlayer(current.scn, current.mode);
+  btn.disabled = false;
+});
+
+// ---------------------------------------------------------------- static tables
+(function tables() {
+  let sz = `<thead><tr><th>Анимация</th><th>Изменено тайлов</th><th>Секвенция AVIF</th><th>Тайл-дельты</th><th>Видео</th></tr></thead><tbody>`;
+  let vr = `<thead><tr><th>Анимация</th><th>Секвенция AVIF</th><th>Тайл-дельты</th><th>Видео</th></tr></thead><tbody>`;
+  for (const [scn, s] of Object.entries(SUMMARY)) {
+    const v = useMp4(scn) ? s.video.mp4 : s.video.webm;
+    sz += `<tr><td>${SCN[scn].name}${s.note ? `<div class="sub">${s.note}</div>` : ''}</td><td class="num">${s.delta.changed.toLocaleString('ru-RU')} %</td>
+      <td class="num worst">${fmtMB(s.seq.bytes)}</td><td class="num">${fmtMB(s.delta.bytes)}</td>
+      <td class="num best">${fmtMB(v)}</td></tr>`;
+    vr += `<tr><td>${SCN[scn].name}</td><td class="num worst">${fmtMB1(s.seq.vram)}</td><td class="num">${fmtMB1(s.delta.vram)}</td>
+      <td class="num best">${fmtMB1(s.video.vram)}</td></tr>`;
+  }
+  $('sizes').innerHTML = sz + '</tbody>';
+  $('vram').innerHTML = vr + '</tbody>';
+})();
+
+// test hooks for automated checks
+window.__api = {
+  show, bench, get player() { return S.player; },
+  async capture(tk) {
+    S.frozen = tk;
+    const p = S.player;
+    p.update(p.ticks ? p.ticks[tk] : tk);
+    renderer.render(app.stage);
+    const { pixels, width, height } = renderer.extract.pixels(app.stage);
+    let bin = ''; const u = new Uint8Array(pixels.buffer, pixels.byteOffset, pixels.byteLength);
+    for (let k = 0; k < u.length; k += 0x8000) bin += String.fromCharCode.apply(null, u.subarray(k, k + 0x8000));
+    return { b64: btoa(bin), width, height };
+  },
+  resume() { S.frozen = null; },
+};
+show(current.scn, current.mode);
+</script>

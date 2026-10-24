@@ -1,0 +1,20 @@
+{
+  "name": "video-to-particles",
+  "private": true,
+  "type": "module",
+  "description": "Pixi 8 win animation: AVIF sequence vs tile deltas vs video vs WebCodecs vs real-time particles",
+  "scripts": {
+    "serve": "npx --yes http-server -p 8080 -c-1 .",
+    "build:fire": "python3 tools/build_vs.py",
+    "check:fire": "node tools/vs_check.mjs",
+    "check:bench": "QUICK=1 node tools/harness.mjs"
+  },
+  "dependencies": {
+    "pixi.js": "8.22.0"
+  },
+  "devDependencies": {
+    "@sparticuz/chromium": "153.0.0",
+    "pngjs": "7.0.0",
+    "puppeteer-core": "25.16.0"
+  }
+}
