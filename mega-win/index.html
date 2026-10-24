@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Mega Win кодом</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Montserrat:wght@900&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: one column read top to bottom — the generator's video, the same win as live particles, then the code to paste. */
+:root {
+  --bg: #F3F0F5;
+  --surface: #FFFFFF;
+  --fg: #1C1620;
+  --muted: #665D6C;
+  --line: #DED7E3;
+  --ember: #C2410C;
+  --good: #1C7348;
+  --stage: #07050C;
+  --code-bg: #FBF8FC;
+  --code-fg: #2A2230;
+  --tok-com: #7D7385;
+  --tok-str: #A0450C;
+  --tok-kw: #7A2E8C;
+  --tok-num: #1C6B8A;
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #110D14; --surface: #1A151E; --fg: #F1EBF3; --muted: #A69CAD; --line: #30283A;
+    --ember: #FB923C; --good: #4FC58C; --stage: #050309;
+    --code-bg: #15111A; --code-fg: #E9E2EE; --tok-com: #8C8296; --tok-str: #F4A261; --tok-kw: #D8A6F0; --tok-num: #7CC8E8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #110D14; --surface: #1A151E; --fg: #F1EBF3; --muted: #A69CAD; --line: #30283A;
+  --ember: #FB923C; --good: #4FC58C; --stage: #050309;
+  --code-bg: #15111A; --code-fg: #E9E2EE; --tok-com: #8C8296; --tok-str: #F4A261; --tok-kw: #D8A6F0; --tok-num: #7CC8E8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+main { max-width: 880px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; }
+main > * { min-width: 0; }
+section { display: grid; gap: 12px; min-width: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 6vw, 34px); line-height: 1.1; margin: 0 0 8px; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-family: var(--font-display); font-weight: 500; font-size: 18px; margin: 0; text-wrap: balance; }
+h3 { font-size: 14px; font-weight: 600; margin: 0; }
+p { margin: 0; max-width: 65ch; }
+.lead { color: var(--muted); }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember); margin-bottom: 6px; }
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.frame { position: relative; width: 100%; border-radius: 18px; overflow: hidden; background: var(--stage); }
+.frame.video { aspect-ratio: 16 / 9; }
+.frame.video video { width: 100%; height: 100%; display: block; object-fit: cover; }
+.frame.fx { aspect-ratio: 16 / 9; cursor: pointer; touch-action: manipulation; }
+.frame.fx canvas { width: 100% !important; height: 100% !important; display: block; }
+.play {
+  position: absolute; inset: 0; margin: auto; width: max-content; height: max-content;
+  font: 600 15px/1 var(--font-body); color: #fff; background: rgba(194, 65, 12, 0.92); border: 0; border-radius: 999px; padding: 13px 20px; cursor: pointer;
+}
+.hud {
+  position: absolute; left: 10px; top: 10px; font: 600 11px/1.35 var(--font-mono);
+  color: #F5E9D6; background: rgba(10, 6, 14, 0.55); border: 1px solid rgba(255, 220, 170, 0.18);
+  padding: 5px 8px; border-radius: 7px; font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.facts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); justify-content: center; }
+.facts b { color: var(--fg); font-weight: 600; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.facts b.good { color: var(--good); }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.btn { font: 600 14px/1 var(--font-body); color: #fff; background: var(--ember); border: 0; border-radius: 10px; padding: 11px 16px; cursor: pointer; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: 500 14px/1 var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 9px 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn:focus-visible, .seg button:focus-visible, .play:focus-visible, .copy:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 65ch; }
+.code { border: 1px solid var(--line); border-radius: 12px; background: var(--code-bg); overflow: hidden; min-width: 0; }
+.code-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); }
+.code-head .name { font: 600 12px/1.2 var(--font-mono); color: var(--fg); }
+.code-head .meta { font: 400 11px/1.2 var(--font-mono); color: var(--muted); }
+.copy { font: 600 12px/1 var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; cursor: pointer; flex: none; }
+pre { margin: 0; padding: 12px 14px; overflow-x: auto; font: 400 12px/1.55 var(--font-mono); color: var(--code-fg); tab-size: 2; }
+pre.tall { max-height: 460px; overflow: auto; }
+.c { color: var(--tok-com); } .s { color: var(--tok-str); } .k { color: var(--tok-kw); } .n { color: var(--tok-num); }
+.note { font-size: 12.5px; color: var(--muted); max-width: 65ch; }
+.note a { color: var(--ember); }
+@media (prefers-reduced-motion: reduce) { .btn, .copy { transition: none; } }
+.nav { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; margin-bottom: 14px; }
+.nav a { color: var(--ember); text-decoration: none; font-weight: 600; }
+.nav a:hover { text-decoration: underline; }
+.layers { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 70ch; font-size: 14px; }
+.layers b { font-weight: 600; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <nav class="nav" aria-label="Страницы"><a href="../">← Страница 1: видео против частиц</a></nav>
+    <div class="eyebrow">Pixi 8 · страница 2</div>
+    <h1>Mega Win кодом</h1>
+    <p class="lead">Сверху ролик из генератора. Ниже попытка повторить его программно: лучи, нити, электрические ленты, фейерверки, монеты и счётчик считаются каждый кадр, без единой картинки. Надпись и цифры сделаны просто.</p>
+  </header>
+
+  <section aria-labelledby="h-video">
+    <div class="label">1 · Видео</div>
+    <h2 id="h-video">Ролик из генератора</h2>
+    <div class="frame video">
+      <video id="vid" src="video.mp4" autoplay muted loop playsinline preload="auto"></video>
+      <button type="button" class="play" id="vid-play" hidden>Включить видео</button>
+    </div>
+    <div class="facts"><span>Файл <b>9,66 МБ</b> без звука</span><span>Длина <b>10 с</b>, 24 fps, 1280×720</span><span>Видеопамять <b>3,5 МБ</b></span></div>
+  </section>
+
+  <section aria-labelledby="h-fx">
+    <div class="label">2 · Код</div>
+    <h2 id="h-fx">То же самое на Pixi</h2>
+    <div class="frame fx" id="stage" role="button" tabindex="0" aria-label="Запустить сцену и видео с начала"><div class="hud" id="hud">загрузка…</div></div>
+    <div class="facts"><span>Модуль <b class="good">0,03 МБ</b></span><span>Картинок <b class="good">0</b></span><span>Длина <b>10 с</b>, 60 fps</span><span>Видеопамять <b id="vram">…</b></span></div>
+    <div class="controls">
+      <button type="button" class="btn" id="again">Сначала вместе с видео</button>
+      <div class="seg" id="density" aria-label="Количество частиц">
+        <button type="button" id="d-low" data-v="0.5" aria-pressed="false">Экономно</button>
+        <button type="button" id="d-mid" data-v="1" aria-pressed="true">Норма</button>
+        <button type="button" id="d-high" data-v="1.5" aria-pressed="false">Максимум</button>
+      </div>
+    </div>
+    <ol class="layers" aria-label="Слои сцены">
+      <li><b>0,0 с</b> взрыв золотых лучей из центра</li>
+      <li><b>0,7 с</b> золотые волны нитей поперёк экрана</li>
+      <li><b>1,6 с</b> MEGA влетает из камеры, кольцевой взрыв золотой пыли, звёзды и монеты</li>
+      <li><b>2,8 с</b> WIN поднимается снизу, синие и оранжевые электрические ленты закручиваются вокруг надписи</li>
+      <li><b>4,8 с</b> фейерверки, прожекторы и фонтан монет</li>
+      <li><b>5,6 с</b> счётчик, золотые нити внизу, дождь монет и блики</li>
+      <li><b>7,5 с</b> вспышка, <b>8,7 с</b> неоновые полосы скорости, <b>9,1 с</b> искровые фонтаны</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="h-code">
+    <div class="label">3 · Код для проекта</div>
+    <h2 id="h-code">Как вставить в проект на Pixi 8</h2>
+    <ol class="steps">
+      <li>Положи модуль <code>mega-win.js</code> рядом с кодом сцены.</li>
+      <li>Загрузи шрифт надписи до создания сцены: буквы и цифры рисуются в canvas при создании.</li>
+      <li>Масштабируй сцену под экран: она нарисована в 1280×720. Вызывай <code>update()</code> в тикере, а <code>play()</code> — когда выпал выигрыш.</li>
+    </ol>
+    <div class="code">
+      <div class="code-head"><div><div class="name">scene.js</div><div class="meta">подключение</div></div><button type="button" class="copy" data-for="code-usage">Скопировать</button></div>
+      <pre id="code-usage"><span class="k">import</span> { MegaWin } <span class="k">from</span> <span class="s">'./mega-win.js'</span>;
+
+<span class="c">// буквы и цифры рисуются при создании сцены — шрифт должен быть уже загружен</span>
+<span class="k">await</span> document.fonts.load(<span class="s">'900 170px "Montserrat"'</span>);
+
+<span class="k">const</span> fx = <span class="k">new</span> MegaWin({ amount: <span class="n">1358856</span>, background: <span class="k">false</span> });
+fx.scale.set(app.screen.width / MegaWin.WIDTH);   <span class="c">// сцена нарисована в 1280×720</span>
+app.stage.addChild(fx);
+app.ticker.add((ticker) =&gt; fx.update(ticker.deltaMS / <span class="n">1000</span>));
+
+<span class="c">// выпал mega win</span>
+fx.play();
+
+<span class="c">// окно выигрыша закрыто</span>
+<span class="c">// fx.destroy();</span></pre>
+    </div>
+    <div class="code">
+      <div class="code-head"><div><div class="name">mega-win.js</div><div class="meta">658 строк · 35 КБ, в gzip 11 КБ</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
+      <pre id="code-module" class="tall"><span class="c">// mega-win.js — сцена «MEGA WIN» на 10 секунд, собранная кодом. Pixi 8.</span>
+<span class="c">// Ни одной внешней картинки: лучи, нити, монеты, звёзды, буквы и цифры рисуются</span>
+<span class="c">// в canvas при первом создании, дальше всё считается частицами и лентами каждый кадр.</span>
+<span class="c">// Сцена в координатах 1280×720 — масштабируй контейнер под свой экран.</span>
+<span class="k">import</span> { Container, Sprite, Texture, ParticleContainer, Particle, MeshRope, Point, Graphics } <span class="k">from</span> <span class="s">'pixi.js'</span>;
+
+<span class="k">const</span> W = <span class="n">1280</span>, H = <span class="n">720</span>, CX = W / <span class="n">2</span>, TAU = Math.PI * <span class="n">2</span>;
+<span class="k">const</span> clamp01 = (v) =&gt; (v &lt; <span class="n">0</span> ? <span class="n">0</span> : v &gt; <span class="n">1</span> ? <span class="n">1</span> : v);
+<span class="k">const</span> lerp = (a, b, k) =&gt; a + (b - a) * k;
+<span class="k">const</span> easeOutCubic = (t) =&gt; <span class="n">1</span> - Math.pow(<span class="n">1</span> - clamp01(t), <span class="n">3</span>);
+<span class="k">const</span> easeInOut = (t) =&gt; { t = clamp01(t); <span class="k">return</span> t &lt; <span class="n">0.5</span> ? <span class="n">4</span> * t * t * t : <span class="n">1</span> - Math.pow(-<span class="n">2</span> * t + <span class="n">2</span>, <span class="n">3</span>) / <span class="n">2</span>; };
+<span class="k">const</span> easeOutBack = (t) =&gt; { t = clamp01(t); <span class="k">const</span> c = <span class="n">1.7</span>; <span class="k">return</span> <span class="n">1</span> + (c + <span class="n">1</span>) * Math.pow(t - <span class="n">1</span>, <span class="n">3</span>) + c * Math.pow(t - <span class="n">1</span>, <span class="n">2</span>); };
+<span class="c">// окно времени: 0 вне [a, b], плавный вход за fi секунд и выход за fo секунд</span>
+<span class="k">const</span> win = (t, a, b, fi = <span class="n">0.3</span>, fo = <span class="n">0.4</span>) =&gt; (t &lt; a || t &gt; b ? <span class="n">0</span> : Math.min(<span class="n">1</span>, (t - a) / fi, (b - t) / fo));
+<span class="k">const</span> mix = (c1, c2, k) =&gt; {
+  <span class="k">const</span> r = lerp((c1 &gt;&gt; <span class="n">16</span>) &amp; <span class="n">255</span>, (c2 &gt;&gt; <span class="n">16</span>) &amp; <span class="n">255</span>, k), g = lerp((c1 &gt;&gt; <span class="n">8</span>) &amp; <span class="n">255</span>, (c2 &gt;&gt; <span class="n">8</span>) &amp; <span class="n">255</span>, k), b = lerp(c1 &amp; <span class="n">255</span>, c2 &amp; <span class="n">255</span>, k);
+  <span class="k">return</span> (r &lt;&lt; <span class="n">16</span>) | (g &lt;&lt; <span class="n">8</span>) | b;
+};
+<span class="k">const</span> GOLD = <span class="n">0xffc45e</span>, GOLD_LIGHT = <span class="n">0xffe7a8</span>, PINK = <span class="n">0xff4fd8</span>, GREEN = <span class="n">0x8cff4f</span>, CYAN = <span class="n">0x4ff0ff</span>, ORANGE = <span class="n">0xff7a2a</span>, VIOLET = <span class="n">0xa96bff</span>, YELLOW = <span class="n">0xffe14f</span>;
+
+<span class="c">// ---------------------------------------------------------------- текстуры (один раз на приложение)</span>
+<span class="k">let</span> TEX = <span class="k">null</span>;
+<span class="k">function</span> canvasTex(w, h, draw) {
+  <span class="k">const</span> c = document.createElement(<span class="s">'canvas'</span>);
+  c.width = w; c.height = h;
+  draw(c.getContext(<span class="s">'2d'</span>), w, h);
+  <span class="k">return</span> Texture.<span class="k">from</span>(c);
+}
+<span class="k">function</span> radial(g, x, y, r0, r1, stops) {
+  <span class="k">const</span> gr = g.createRadialGradient(x, y, r0, x, y, r1);
+  <span class="k">for</span> (<span class="k">const</span> [o, c] <span class="k">of</span> stops) gr.addColorStop(o, c);
+  <span class="k">return</span> gr;
+}
+<span class="k">function</span> starPath(g, cx, cy, n, r0, r1) {
+  g.beginPath();
+  <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; n * <span class="n">2</span>; i++) {
+    <span class="k">const</span> a = (i / (n * <span class="n">2</span>)) * TAU - Math.PI / <span class="n">2</span>, r = i % <span class="n">2</span> ? r1 : r0;
+    g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+  }
+  g.closePath();
+}
+<span class="k">function</span> textures() {
+  <span class="k">if</span> (TEX) <span class="k">return</span> TEX;
+  TEX = {
+    soft: canvasTex(<span class="n">64</span>, <span class="n">64</span>, (g, w) =&gt; {
+      g.fillStyle = radial(g, w / <span class="n">2</span>, w / <span class="n">2</span>, <span class="n">0</span>, w / <span class="n">2</span>, [[<span class="n">0</span>, <span class="s">'rgba(255,255,255,1)'</span>], [<span class="n">0.22</span>, <span class="s">'rgba(255,255,255,0.8)'</span>], [<span class="n">0.55</span>, <span class="s">'rgba(255,255,255,0.18)'</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+      g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, w);
+    }),
+    streak: canvasTex(<span class="n">128</span>, <span class="n">12</span>, (g, w, h) =&gt; {
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, <span class="n">0</span>, w, <span class="n">0</span>);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'rgba(255,255,255,0)'</span>); lg.addColorStop(<span class="n">0.7</span>, <span class="s">'rgba(255,255,255,0.75)'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'rgba(255,255,255,1)'</span>);
+      g.fillStyle = lg;
+      g.beginPath(); g.moveTo(<span class="n">0</span>, h / <span class="n">2</span>); g.quadraticCurveTo(w * <span class="n">0.7</span>, h * <span class="n">0.15</span>, w, h / <span class="n">2</span>); g.quadraticCurveTo(w * <span class="n">0.7</span>, h * <span class="n">0.85</span>, <span class="n">0</span>, h / <span class="n">2</span>); g.fill();
+    }),
+    coin: canvasTex(<span class="n">128</span>, <span class="n">128</span>, (g, w) =&gt; {
+      <span class="k">const</span> c = w / <span class="n">2</span>;
+      g.fillStyle = radial(g, c * <span class="n">0.8</span>, c * <span class="n">0.7</span>, <span class="n">4</span>, c, [[<span class="n">0</span>, <span class="s">'#fff3b8'</span>], [<span class="n">0.45</span>, <span class="s">'#ffcf4a'</span>], [<span class="n">0.85</span>, <span class="s">'#c88a1c'</span>], [<span class="n">1</span>, <span class="s">'#8a5a10'</span>]]);
+      g.beginPath(); g.arc(c, c, c - <span class="n">2</span>, <span class="n">0</span>, TAU); g.fill();
+      g.lineWidth = <span class="n">7</span>; g.strokeStyle = <span class="s">'#a86e14'</span>; g.beginPath(); g.arc(c, c, c - <span class="n">14</span>, <span class="n">0</span>, TAU); g.stroke();
+      g.lineWidth = <span class="n">3</span>; g.strokeStyle = <span class="s">'rgba(255,240,180,0.9)'</span>; g.beginPath(); g.arc(c, c, c - <span class="n">9</span>, Math.PI * <span class="n">1.05</span>, Math.PI * <span class="n">1.75</span>); g.stroke();
+      g.fillStyle = <span class="s">'rgba(150,95,15,0.85)'</span>; starPath(g, c, c + <span class="n">2</span>, <span class="n">5</span>, <span class="n">30</span>, <span class="n">13</span>); g.fill();
+      g.fillStyle = <span class="s">'rgba(255,236,160,0.9)'</span>; starPath(g, c - <span class="n">2</span>, c, <span class="n">5</span>, <span class="n">27</span>, <span class="n">11</span>); g.fill();
+    }),
+    star: canvasTex(<span class="n">64</span>, <span class="n">64</span>, (g, w) =&gt; {
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, <span class="n">0</span>, w, w);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'#fff6c0'</span>); lg.addColorStop(<span class="n">0.5</span>, <span class="s">'#ffc93f'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'#b8740f'</span>);
+      g.fillStyle = lg; starPath(g, w / <span class="n">2</span>, w / <span class="n">2</span> + <span class="n">2</span>, <span class="n">5</span>, w * <span class="n">0.48</span>, w * <span class="n">0.2</span>); g.fill();
+    }),
+    glint: canvasTex(<span class="n">64</span>, <span class="n">64</span>, (g, w) =&gt; {
+      <span class="k">const</span> c = w / <span class="n">2</span>;
+      g.fillStyle = radial(g, c, c, <span class="n">0</span>, c * <span class="n">0.35</span>, [[<span class="n">0</span>, <span class="s">'rgba(255,255,255,1)'</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+      g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, w);
+      <span class="k">for</span> (<span class="k">const</span> [sx, sy] <span class="k">of</span> [[<span class="n">1</span>, <span class="n">0.09</span>], [<span class="n">0.09</span>, <span class="n">1</span>]]) {
+        <span class="k">const</span> gr = radial(g, c, c, <span class="n">0</span>, c, [[<span class="n">0</span>, <span class="s">'rgba(255,255,255,1)'</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+        g.save(); g.translate(c, c); g.scale(sx, sy); g.translate(-c, -c); g.fillStyle = gr; g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, w); g.restore();
+      }
+    }),
+    glow: canvasTex(<span class="n">256</span>, <span class="n">256</span>, (g, w) =&gt; {
+      g.fillStyle = radial(g, w / <span class="n">2</span>, w / <span class="n">2</span>, <span class="n">0</span>, w / <span class="n">2</span>, [[<span class="n">0</span>, <span class="s">'rgba(255,255,255,1)'</span>], [<span class="n">0.2</span>, <span class="s">'rgba(255,255,255,0.55)'</span>], [<span class="n">0.5</span>, <span class="s">'rgba(255,255,255,0.15)'</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+      g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, w);
+    }),
+    rays: canvasTex(<span class="n">256</span>, <span class="n">256</span>, (g, w) =&gt; {
+      g.translate(w / <span class="n">2</span>, w / <span class="n">2</span>);
+      <span class="k">const</span> n = <span class="n">26</span>;
+      <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; n; i++) {
+        <span class="k">const</span> a = (i / n) * TAU, half = i % <span class="n">2</span> ? <span class="n">0.03</span> : <span class="n">0.06</span>;
+        g.fillStyle = radial(g, <span class="n">0</span>, <span class="n">0</span>, w * <span class="n">0.03</span>, w * <span class="n">0.5</span>, [[<span class="n">0</span>, <span class="s">`rgba(255,255,255,${i % 2 ? 0.5 : 0.9})`</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+        g.beginPath(); g.moveTo(<span class="n">0</span>, <span class="n">0</span>); g.arc(<span class="n">0</span>, <span class="n">0</span>, w * <span class="n">0.5</span>, a - half, a + half); g.closePath(); g.fill();
+      }
+    }),
+    beam: canvasTex(<span class="n">64</span>, <span class="n">512</span>, (g, w, h) =&gt; {
+      <span class="c">// луч прожектора: узкий у основания, расширяется вверх и гаснет</span>
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, h, <span class="n">0</span>, <span class="n">0</span>);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'rgba(255,255,255,0.95)'</span>); lg.addColorStop(<span class="n">0.6</span>, <span class="s">'rgba(255,255,255,0.35)'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>);
+      g.fillStyle = lg;
+      g.beginPath(); g.moveTo(w / <span class="n">2</span> - <span class="n">3</span>, h); g.lineTo(<span class="n">0</span>, <span class="n">0</span>); g.lineTo(w, <span class="n">0</span>); g.lineTo(w / <span class="n">2</span> + <span class="n">3</span>, h); g.closePath(); g.fill();
+    }),
+    line: canvasTex(<span class="n">32</span>, <span class="n">16</span>, (g, w, h) =&gt; {
+      <span class="c">// поперечный профиль ленты: яркая середина, мягкие края</span>
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>, h);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'rgba(255,255,255,0)'</span>); lg.addColorStop(<span class="n">0.42</span>, <span class="s">'rgba(255,255,255,0.65)'</span>); lg.addColorStop(<span class="n">0.5</span>, <span class="s">'rgba(255,255,255,1)'</span>);
+      lg.addColorStop(<span class="n">0.58</span>, <span class="s">'rgba(255,255,255,0.65)'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>);
+      g.fillStyle = lg; g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, h);
+    }),
+    haze: canvasTex(<span class="n">32</span>, <span class="n">32</span>, (g, w, h) =&gt; {
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>, h);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'rgba(255,255,255,0)'</span>); lg.addColorStop(<span class="n">0.5</span>, <span class="s">'rgba(255,255,255,0.6)'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>);
+      g.fillStyle = lg; g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, h);
+    }),
+    flare: canvasTex(<span class="n">512</span>, <span class="n">24</span>, (g, w, h) =&gt; {
+      <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, <span class="n">0</span>, w, <span class="n">0</span>);
+      lg.addColorStop(<span class="n">0</span>, <span class="s">'rgba(255,255,255,0)'</span>); lg.addColorStop(<span class="n">0.5</span>, <span class="s">'rgba(255,255,255,1)'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>);
+      g.fillStyle = lg; g.fillRect(<span class="n">0</span>, h * <span class="n">0.35</span>, w, h * <span class="n">0.3</span>);
+      g.fillStyle = radial(g, w / <span class="n">2</span>, h / <span class="n">2</span>, <span class="n">0</span>, h / <span class="n">2</span>, [[<span class="n">0</span>, <span class="s">'rgba(255,255,255,0.8)'</span>], [<span class="n">1</span>, <span class="s">'rgba(255,255,255,0)'</span>]]);
+      g.fillRect(<span class="n">0</span>, <span class="n">0</span>, w, h);
+    }),
+  };
+  <span class="k">return</span> TEX;
+}
+
+<span class="c">// золотая объёмная буква или цифра: выдавливание вниз, градиент, тонкая обводка, свечение</span>
+<span class="k">function</span> goldGlyph(ch, size, font) {
+  <span class="k">const</span> probe = document.createElement(<span class="s">'canvas'</span>).getContext(<span class="s">'2d'</span>);
+  probe.font = <span class="s">`900 ${size}px ${font}`</span>;
+  <span class="k">const</span> tw = Math.ceil(probe.measureText(ch).width);
+  <span class="k">const</span> depth = Math.round(size * <span class="n">0.07</span>), pad = Math.round(size * <span class="n">0.22</span>);
+  <span class="k">const</span> w = tw + pad * <span class="n">2</span>, h = Math.round(size * <span class="n">1.25</span>) + pad * <span class="n">2</span>;
+  <span class="k">const</span> tex = canvasTex(w, h, (g) =&gt; {
+    g.font = <span class="s">`900 ${size}px ${font}`</span>;
+    g.textBaseline = <span class="s">'alphabetic'</span>; g.textAlign = <span class="s">'left'</span>;
+    <span class="k">const</span> x = pad, y = pad + size * <span class="n">0.98</span>;
+    g.shadowColor = <span class="s">'rgba(255,170,40,0.35)'</span>; g.shadowBlur = size * <span class="n">0.07</span>;
+    <span class="k">for</span> (<span class="k">let</span> i = depth; i &gt;= <span class="n">1</span>; i--) { g.fillStyle = i &gt; depth * <span class="n">0.5</span> ? <span class="s">'#4a2c06'</span> : <span class="s">'#7a4e0e'</span>; g.fillText(ch, x + i * <span class="n">0.25</span>, y + i); }
+    g.shadowBlur = <span class="n">0</span>;
+    <span class="k">const</span> lg = g.createLinearGradient(<span class="n">0</span>, y - size * <span class="n">0.78</span>, <span class="n">0</span>, y);
+    lg.addColorStop(<span class="n">0</span>, <span class="s">'#fffbe0'</span>); lg.addColorStop(<span class="n">0.3</span>, <span class="s">'#ffe17a'</span>); lg.addColorStop(<span class="n">0.52</span>, <span class="s">'#e7a72c'</span>);
+    lg.addColorStop(<span class="n">0.62</span>, <span class="s">'#b8761a'</span>); lg.addColorStop(<span class="n">0.8</span>, <span class="s">'#f2c24a'</span>); lg.addColorStop(<span class="n">1</span>, <span class="s">'#fff0b0'</span>);
+    g.fillStyle = lg; g.fillText(ch, x, y);
+    g.lineWidth = Math.max(<span class="n">1.5</span>, size * <span class="n">0.012</span>); g.strokeStyle = <span class="s">'rgba(110,64,8,0.9)'</span>; g.strokeText(ch, x, y);
+  });
+  <span class="k">return</span> { tex, w: tw, h };
+}
+
+<span class="c">// ---------------------------------------------------------------- пулы частиц</span>
+<span class="k">class</span> Pool {
+  constructor(tex, n, blend = <span class="s">'add'</span>) {
+    <span class="k">this</span>.pc = <span class="k">new</span> ParticleContainer({ texture: tex, dynamicProperties: { position: <span class="k">true</span>, rotation: <span class="k">true</span>, vertex: <span class="k">true</span>, color: <span class="k">true</span>, uvs: <span class="k">false</span> } });
+    <span class="k">this</span>.pc.blendMode = blend;
+    <span class="k">this</span>.items = [];
+    <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; n; i++) {
+      <span class="k">const</span> p = <span class="k">new</span> Particle({ texture: tex, anchorX: <span class="n">0.5</span>, anchorY: <span class="n">0.5</span> });
+      <span class="k">this</span>.items.push({ p, alive: <span class="k">false</span>, life: <span class="n">0</span>, max: <span class="n">1</span>, x: <span class="n">0</span>, y: <span class="n">0</span>, vx: <span class="n">0</span>, vy: <span class="n">0</span>, g: <span class="n">0</span>, drag: <span class="n">0</span>, s: <span class="n">1</span>, s1: <span class="n">1</span>, r: <span class="n">0</span>, vr: <span class="n">0</span>, ph: <span class="n">0</span>, tint: <span class="n">0xffffff</span>, a: <span class="n">1</span>, tw: <span class="n">0</span> });
+    }
+    <span class="k">this</span>.next = <span class="n">0</span>;
+    <span class="k">this</span>.alive = <span class="n">0</span>;
+  }
+  spawn() {
+    <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; <span class="k">this</span>.items.length; i++) {
+      <span class="k">const</span> it = <span class="k">this</span>.items[<span class="k">this</span>.next];
+      <span class="k">this</span>.next = (<span class="k">this</span>.next + <span class="n">1</span>) % <span class="k">this</span>.items.length;
+      <span class="k">if</span> (!it.alive) { it.alive = <span class="k">true</span>; it.life = <span class="n">0</span>; it.g = <span class="n">0</span>; it.drag = <span class="n">0</span>; it.vr = <span class="n">0</span>; it.r = <span class="n">0</span>; it.tw = <span class="n">0</span>; it.a = <span class="n">1</span>; it.s1 = <span class="k">null</span>; it.thick = <span class="n">0</span>; <span class="k">return</span> it; }
+    }
+    <span class="k">return</span> <span class="k">null</span>;
+  }
+  step(dt, fn) {
+    <span class="k">const</span> list = <span class="k">this</span>.pc.particleChildren;
+    list.length = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">const</span> it <span class="k">of</span> <span class="k">this</span>.items) {
+      <span class="k">if</span> (!it.alive) <span class="k">continue</span>;
+      it.life += dt;
+      <span class="k">const</span> k = it.life / it.max;
+      <span class="k">if</span> (k &gt;= <span class="n">1</span>) { it.alive = <span class="k">false</span>; <span class="k">continue</span>; }
+      <span class="k">const</span> d = <span class="n">1</span> - it.drag * dt;
+      it.vx *= d; it.vy *= d; it.vy += it.g * dt;
+      it.x += it.vx * dt; it.y += it.vy * dt; it.r += it.vr * dt;
+      fn(it, k, it.p);
+      it.p.x = it.x; it.p.y = it.y;
+      list.push(it.p);
+    }
+    <span class="k">this</span>.alive = list.length;
+    <span class="k">this</span>.pc.update();
+  }
+}
+
+<span class="c">// лента из нескольких нитей: каждая нить — MeshRope, форма задаётся функцией path(u, i) каждый кадр</span>
+<span class="k">class</span> Ribbon {
+  constructor(parent, { strands, tex, widths, tints, n = <span class="n">56</span> }) {
+    <span class="k">this</span>.container = <span class="k">new</span> Container();
+    parent.addChild(<span class="k">this</span>.container);
+    <span class="k">this</span>.ropes = [];
+    <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; strands; i++) {
+      <span class="k">const</span> points = Array.<span class="k">from</span>({ length: n }, () =&gt; <span class="k">new</span> Point());
+      <span class="k">const</span> rope = <span class="k">new</span> MeshRope({ texture: tex, points, width: widths[i % widths.length] });
+      rope.blendMode = <span class="s">'add'</span>;
+      rope.tint = tints[i % tints.length];
+      <span class="k">this</span>.container.addChild(rope);
+      <span class="k">this</span>.ropes.push({ rope, points });
+    }
+    <span class="k">this</span>.container.visible = <span class="k">false</span>;
+  }
+  set(alpha, path) {
+    <span class="k">this</span>.container.visible = alpha &gt; <span class="n">0.002</span>;
+    <span class="k">if</span> (!<span class="k">this</span>.container.visible) <span class="k">return</span>;
+    <span class="k">this</span>.container.alpha = alpha;
+    <span class="k">const</span> out = [<span class="n">0</span>, <span class="n">0</span>];
+    <span class="k">this</span>.ropes.forEach(({ points }, i) =&gt; {
+      <span class="k">for</span> (<span class="k">let</span> j = <span class="n">0</span>; j &lt; points.length; j++) {
+        path(j / (points.length - <span class="n">1</span>), i, out);
+        points[j].x = out[<span class="n">0</span>]; points[j].y = out[<span class="n">1</span>];
+      }
+    });
+  }
+  <span class="c">// случайная точка на случайной нити: откуда вылетают искры</span>
+  sample(out) {
+    <span class="k">const</span> { points } = <span class="k">this</span>.ropes[(Math.random() * <span class="k">this</span>.ropes.length) | <span class="n">0</span>];
+    <span class="k">const</span> p = points[(Math.random() * points.length) | <span class="n">0</span>];
+    out[<span class="n">0</span>] = p.x; out[<span class="n">1</span>] = p.y;
+    <span class="k">return</span> out;
+  }
+}
+
+<span class="k">export</span> <span class="k">class</span> MegaWin <span class="k">extends</span> Container {
+  static WIDTH = W;
+  static HEIGHT = H;
+  static DURATION = <span class="n">10</span>;
+
+  <span class="c">/**
+   * @param {object} [o]
+   * @param {number}  [o.amount=1358856] итоговая сумма на счётчике
+   * @param {number}  [o.density=1]      множитель частиц: 0.5 — экономно, 1.5 — максимум
+   * @param {boolean} [o.loop=false]     повторять сцену каждые 10 с
+   * @param {boolean} [o.background=true] тёмная подложка; false — сцена поверх твоей игры
+   * @param {string}  [o.fontFamily]     шрифт надписи и цифр; загрузи его заранее (document.fonts.load)
+   */</span>
+  constructor({ amount = <span class="n">1358856</span>, density = <span class="n">1</span>, loop = <span class="k">false</span>, background = <span class="k">true</span>, fontFamily = <span class="s">'"Montserrat", "Arial Black", Impact, sans-serif'</span> } = {}) {
+    <span class="k">super</span>();
+    <span class="k">const</span> T = textures();
+    <span class="k">this</span>.amount = amount;
+    <span class="k">this</span>.density = density;
+    <span class="k">this</span>.loop = loop;
+    <span class="k">this</span>._t = <span class="n">0</span>;
+    <span class="k">this</span>._T = -<span class="n">1</span>;          <span class="c">// время от play(); -1 — сцена не запущена</span>
+    <span class="k">this</span>._acc = {};
+    <span class="k">this</span>._fired = <span class="k">new</span> Set();
+    <span class="k">this</span>._shake = <span class="n">0</span>;
+    <span class="k">this</span>._shown = <span class="s">''</span>;
+
+    <span class="k">const</span> root = (<span class="k">this</span>._root = <span class="k">new</span> Container());
+    <span class="k">this</span>.addChild(root);
+
+    <span class="c">// подложка</span>
+    <span class="k">this</span>._bg = <span class="k">new</span> Graphics().rect(-<span class="n">40</span>, -<span class="n">40</span>, W + <span class="n">80</span>, H + <span class="n">80</span>).fill(<span class="n">0x050307</span>);
+    <span class="k">this</span>._bg.visible = background;
+    <span class="k">this</span>._bgGlow = <span class="k">new</span> Sprite(T.glow); <span class="k">this</span>._bgGlow.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._bgGlow.position.set(CX, H * <span class="n">0.45</span>);
+    <span class="k">this</span>._bgGlow.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._bgGlow.tint = <span class="n">0x6a3a08</span>; <span class="k">this</span>._bgGlow.scale.set(<span class="n">5.5</span>, <span class="n">3.6</span>);
+    root.addChild(<span class="k">this</span>._bg, <span class="k">this</span>._bgGlow);
+
+    <span class="c">// лучи за надписью и прожекторы</span>
+    <span class="k">this</span>._rays = <span class="k">new</span> Sprite(T.rays); <span class="k">this</span>._rays.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._rays.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._rays.tint = <span class="n">0xffc25a</span>;
+    <span class="k">this</span>._rays.position.set(CX, H * <span class="n">0.3</span>); <span class="k">this</span>._rays.alpha = <span class="n">0</span>;
+    root.addChild(<span class="k">this</span>._rays);
+    <span class="k">this</span>._beams = <span class="k">new</span> Container(); root.addChild(<span class="k">this</span>._beams);
+    <span class="k">this</span>._beamList = [PINK, YELLOW, GREEN, PINK, YELLOW, GREEN].map((tint, i) =&gt; {
+      <span class="k">const</span> b = <span class="k">new</span> Sprite(T.beam); b.anchor.set(<span class="n">0.5</span>, <span class="n">1</span>); b.blendMode = <span class="s">'add'</span>; b.tint = tint;
+      b.position.set(CX, H * <span class="n">0.62</span>); b.scale.set(<span class="n">3.2</span>, <span class="n">2.1</span>); <span class="k">this</span>._beams.addChild(b);
+      <span class="k">return</span> { b, base: -<span class="n">1.25</span> + i * <span class="n">0.5</span>, ph: i * <span class="n">1.7</span> };
+    });
+
+    <span class="c">// частицы за надписью</span>
+    <span class="k">const</span> D = Math.max(<span class="n">0.3</span>, density);
+    <span class="k">this</span>._fw = <span class="k">new</span> Pool(T.soft, Math.round(<span class="n">2000</span> * D));
+    <span class="k">this</span>._streaks = <span class="k">new</span> Pool(T.streak, Math.round(<span class="n">1400</span> * D));
+    <span class="k">this</span>._dust = <span class="k">new</span> Pool(T.soft, <span class="n">200</span>);
+    root.addChild(<span class="k">this</span>._fw.pc, <span class="k">this</span>._streaks.pc, <span class="k">this</span>._dust.pc);
+    <span class="k">this</span>._gold1 = <span class="k">new</span> Ribbon(root, { strands: <span class="n">12</span>, tex: T.line, widths: [<span class="n">3</span>, <span class="n">2</span>, <span class="n">4</span>, <span class="n">1.5</span>, <span class="n">2.5</span>, <span class="n">2</span>, <span class="n">3.5</span>, <span class="n">1.5</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">1.5</span>, <span class="n">2.5</span>], tints: [<span class="n">0xffb648</span>, <span class="n">0xffd27a</span>, <span class="n">0xff9f2e</span>, <span class="n">0xffe2a0</span>, <span class="n">0xffc062</span>] });
+    <span class="k">this</span>._goldHaze = <span class="k">new</span> Ribbon(root, { strands: <span class="n">2</span>, tex: T.haze, widths: [<span class="n">42</span>, <span class="n">28</span>], tints: [<span class="n">0x8a4d0a</span>, <span class="n">0x6a3a08</span>] });
+    <span class="k">this</span>._gold2 = <span class="k">new</span> Ribbon(root, { strands: <span class="n">10</span>, tex: T.line, widths: [<span class="n">3</span>, <span class="n">1.5</span>, <span class="n">4</span>, <span class="n">2</span>, <span class="n">2.5</span>, <span class="n">1.5</span>, <span class="n">3</span>, <span class="n">2</span>, <span class="n">5</span>, <span class="n">1.5</span>], tints: [<span class="n">0xffb648</span>, <span class="n">0xffd27a</span>, <span class="n">0xffa53a</span>, <span class="n">0xffe6a8</span>, <span class="n">0xffc76a</span>] });
+    <span class="k">this</span>._elec = <span class="k">new</span> Ribbon(root, { strands: <span class="n">6</span>, tex: T.line, widths: [<span class="n">7</span>, <span class="n">3</span>, <span class="n">4.5</span>, <span class="n">7</span>, <span class="n">3</span>, <span class="n">4.5</span>], tints: [CYAN, <span class="n">0x9ff8ff</span>, <span class="n">0x3aa8ff</span>, ORANGE, <span class="n">0xffb36b</span>, <span class="n">0xff5a1a</span>] });
+    <span class="k">this</span>._shell = <span class="k">new</span> Pool(T.soft, Math.round(<span class="n">1300</span> * D));
+    root.addChild(<span class="k">this</span>._shell.pc);
+    <span class="k">this</span>._core = <span class="k">new</span> Sprite(T.glow); <span class="k">this</span>._core.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._core.position.set(CX, H * <span class="n">0.47</span>);
+    <span class="k">this</span>._core.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._core.tint = <span class="n">0xffe2a0</span>; root.addChild(<span class="k">this</span>._core);
+
+    <span class="c">// надпись и счётчик</span>
+    <span class="k">const</span> text = (<span class="k">this</span>._text = <span class="k">new</span> Container());
+    root.addChild(text);
+    <span class="k">this</span>._textGlow = <span class="k">new</span> Sprite(T.glow); <span class="k">this</span>._textGlow.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._textGlow.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._textGlow.tint = <span class="n">0xb8700f</span>;
+    text.addChild(<span class="k">this</span>._textGlow);
+    <span class="k">const</span> layout = (word, size) =&gt; {
+      <span class="k">const</span> glyphs = [...word].map((ch) =&gt; goldGlyph(ch, size, fontFamily));
+      <span class="k">const</span> gap = -size * <span class="n">0.04</span>;
+      <span class="k">const</span> total = glyphs.reduce((s, g) =&gt; s + g.w, <span class="n">0</span>) + gap * (glyphs.length - <span class="n">1</span>);
+      <span class="k">let</span> x = -total / <span class="n">2</span>;
+      <span class="k">return</span> glyphs.map((g) =&gt; {
+        <span class="k">const</span> s = <span class="k">new</span> Sprite(g.tex); s.anchor.set(<span class="n">0.5</span>);
+        s.homeX = x + g.w / <span class="n">2</span>; x += g.w + gap;
+        text.addChild(s);
+        <span class="k">return</span> s;
+      });
+    };
+    <span class="k">this</span>._mega = layout(<span class="s">'MEGA'</span>, <span class="n">214</span>);
+    <span class="k">this</span>._win = layout(<span class="s">'WIN'</span>, <span class="n">222</span>);
+    <span class="k">this</span>._digits = {};
+    <span class="k">for</span> (<span class="k">const</span> ch <span class="k">of</span> <span class="s">'0123456789,'</span>) <span class="k">this</span>._digits[ch] = goldGlyph(ch, <span class="n">128</span>, fontFamily);
+    <span class="k">this</span>._digitW = Math.max(...[...<span class="s">'0123456789'</span>].map((c) =&gt; <span class="k">this</span>._digits[c].w)) * <span class="n">0.92</span>;
+    <span class="k">this</span>._counter = <span class="k">new</span> Container(); text.addChild(<span class="k">this</span>._counter);
+    <span class="k">this</span>._counterSprites = Array.<span class="k">from</span>({ length: <span class="n">16</span> }, () =&gt; { <span class="k">const</span> s = <span class="k">new</span> Sprite(Texture.EMPTY); s.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._counter.addChild(s); <span class="k">return</span> s; });
+
+    <span class="c">// частицы перед надписью</span>
+    <span class="k">this</span>._coins = <span class="k">new</span> Pool(T.coin, Math.round(<span class="n">520</span> * D), <span class="s">'normal'</span>);
+    <span class="k">this</span>._stars = <span class="k">new</span> Pool(T.star, Math.round(<span class="n">320</span> * D), <span class="s">'normal'</span>);
+    <span class="k">this</span>._sparks = <span class="k">new</span> Pool(T.soft, Math.round(<span class="n">1800</span> * D));
+    <span class="k">this</span>._glints = <span class="k">new</span> Pool(T.glint, <span class="n">80</span>);
+    root.addChild(<span class="k">this</span>._coins.pc, <span class="k">this</span>._stars.pc, <span class="k">this</span>._sparks.pc, <span class="k">this</span>._glints.pc);
+    <span class="k">this</span>._flash = <span class="k">new</span> Sprite(T.glow); <span class="k">this</span>._flash.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._flash.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._flash.alpha = <span class="n">0</span>;
+    <span class="k">this</span>._flare = <span class="k">new</span> Sprite(T.flare); <span class="k">this</span>._flare.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._flare.blendMode = <span class="s">'add'</span>; <span class="k">this</span>._flare.alpha = <span class="n">0</span>;
+    root.addChild(<span class="k">this</span>._flash, <span class="k">this</span>._flare);
+
+    <span class="k">this</span>._beams.visible = <span class="k">false</span>; <span class="k">this</span>._core.alpha = <span class="n">0</span>;
+    <span class="k">this</span>._pools = [<span class="k">this</span>._fw, <span class="k">this</span>._streaks, <span class="k">this</span>._dust, <span class="k">this</span>._shell, <span class="k">this</span>._coins, <span class="k">this</span>._stars, <span class="k">this</span>._sparks, <span class="k">this</span>._glints];
+    <span class="k">this</span>._tmp = [<span class="n">0</span>, <span class="n">0</span>];
+    <span class="k">this</span>._hideAll();
+  }
+
+  <span class="c">/** Запустить сцену с начала. */</span>
+  play() {
+    <span class="k">this</span>._T = <span class="n">0</span>;
+    <span class="k">this</span>._fired.clear();
+    <span class="k">this</span>._acc = {};
+    <span class="k">for</span> (<span class="k">const</span> p <span class="k">of</span> <span class="k">this</span>._pools) <span class="k">for</span> (<span class="k">const</span> it <span class="k">of</span> p.items) it.alive = <span class="k">false</span>;
+  }
+
+  <span class="c">/** Секунды от начала сцены. */</span>
+  get time() { <span class="k">return</span> <span class="k">this</span>._T; }
+
+  <span class="c">/** Сколько частиц сейчас живо. */</span>
+  get particleCount() { <span class="k">return</span> <span class="k">this</span>._pools.reduce((s, p) =&gt; s + p.alive, <span class="n">0</span>); }
+
+  <span class="c">/** Показать задний фон или нет (можно менять на лету). */</span>
+  set background(v) { <span class="k">this</span>._bg.visible = !!v; }
+  get background() { <span class="k">return</span> <span class="k">this</span>._bg.visible; }
+
+  _hideAll() {
+    <span class="k">for</span> (<span class="k">const</span> s <span class="k">of</span> [...<span class="k">this</span>._mega, ...<span class="k">this</span>._win]) s.alpha = <span class="n">0</span>;
+    <span class="k">this</span>._counter.visible = <span class="k">false</span>;
+  }
+
+  <span class="c">// испустить rate частиц в секунду, вызывая fn для каждой новой</span>
+  _emit(key, rate, dt, pool, fn) {
+    <span class="k">this</span>._acc[key] = (<span class="k">this</span>._acc[key] || <span class="n">0</span>) + rate * dt * <span class="k">this</span>.density;
+    <span class="k">while</span> (<span class="k">this</span>._acc[key] &gt;= <span class="n">1</span>) {
+      <span class="k">this</span>._acc[key] -= <span class="n">1</span>;
+      <span class="k">const</span> it = pool.spawn();
+      <span class="k">if</span> (!it) { <span class="k">this</span>._acc[key] = <span class="n">0</span>; <span class="k">return</span>; }
+      fn(it);
+    }
+  }
+  _once(key, T, at, fn) { <span class="k">if</span> (T &gt;= at &amp;&amp; !<span class="k">this</span>._fired.has(key)) { <span class="k">this</span>._fired.add(key); fn(); } }
+  _burst(n, pool, fn) { <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>, m = Math.round(n * <span class="k">this</span>.density); i &lt; m; i++) { <span class="k">const</span> it = pool.spawn(); <span class="k">if</span> (!it) <span class="k">return</span>; fn(it, i); } }
+
+  <span class="c">/** Вызывать каждый кадр. dt — секунды (в Pixi 8: ticker.deltaMS / 1000). */</span>
+  update(dt) {
+    dt = Math.min(dt, <span class="n">1</span> / <span class="n">30</span>);
+    <span class="k">this</span>._t += dt;
+    <span class="k">const</span> t = <span class="k">this</span>._t;
+    <span class="k">if</span> (<span class="k">this</span>._T &gt;= <span class="n">0</span>) <span class="k">this</span>._T += dt;
+    <span class="k">let</span> T = <span class="k">this</span>._T;
+    <span class="k">if</span> (T &gt; MegaWin.DURATION) {
+      <span class="k">if</span> (<span class="k">this</span>.loop) { <span class="k">this</span>.play(); T = <span class="n">0</span>; } <span class="k">else</span> { T = MegaWin.DURATION; }
+    }
+    <span class="k">const</span> R = (a, b) =&gt; a + (b - a) * Math.random();
+    <span class="k">const</span> on = T &gt;= <span class="n">0</span>;
+
+    <span class="c">// ---- непрерывные слои</span>
+    <span class="k">this</span>._emit(<span class="s">'dust'</span>, <span class="n">22</span>, dt, <span class="k">this</span>._dust, (it) =&gt; {
+      it.x = R(<span class="n">0</span>, W); it.y = R(<span class="n">0</span>, H); it.vx = R(-<span class="n">12</span>, <span class="n">12</span>); it.vy = R(-<span class="n">22</span>, -<span class="n">4</span>);
+      it.max = R(<span class="n">2.5</span>, <span class="n">5</span>); it.s = R(<span class="n">0.04</span>, <span class="n">0.12</span>); it.tint = mix(GOLD, GOLD_LIGHT, Math.random()); it.ph = R(<span class="n">0</span>, TAU);
+    });
+
+    <span class="k">if</span> (on) {
+      <span class="c">// 0–2,3 с: звёздный взрыв лучей из центра</span>
+      <span class="k">const</span> burstOn = win(T, <span class="n">0</span>, <span class="n">2.35</span>, <span class="n">0.05</span>, <span class="n">0.5</span>);
+      <span class="k">this</span>._once(<span class="s">'burst0'</span>, T, <span class="n">0</span>, () =&gt; <span class="k">this</span>._burst(<span class="n">260</span>, <span class="k">this</span>._streaks, (it) =&gt; {
+        <span class="k">const</span> a = R(<span class="n">0</span>, TAU), sp = R(<span class="n">500</span>, <span class="n">1300</span>);
+        it.x = CX + Math.cos(a) * R(<span class="n">4</span>, <span class="n">60</span>); it.y = H * <span class="n">0.47</span> + Math.sin(a) * R(<span class="n">4</span>, <span class="n">60</span>);
+        it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = <span class="n">0.9</span>;
+        it.max = R(<span class="n">0.9</span>, <span class="n">1.6</span>); it.s = R(<span class="n">0.9</span>, <span class="n">1.6</span>); it.tint = mix(<span class="n">0xff9f2e</span>, GOLD_LIGHT, Math.random()); it.a = R(<span class="n">0.6</span>, <span class="n">1</span>);
+      }));
+      <span class="k">if</span> (burstOn &gt; <span class="n">0</span>) {
+        <span class="k">this</span>._emit(<span class="s">'rays'</span>, <span class="n">520</span> * burstOn, dt, <span class="k">this</span>._streaks, (it) =&gt; {
+          <span class="k">const</span> a = R(<span class="n">0</span>, TAU), sp = R(<span class="n">320</span>, <span class="n">1100</span>);
+          it.x = CX + Math.cos(a) * R(<span class="n">4</span>, <span class="n">30</span>); it.y = H * <span class="n">0.47</span> + Math.sin(a) * R(<span class="n">4</span>, <span class="n">30</span>);
+          it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = <span class="n">0.4</span>;
+          it.max = R(<span class="n">0.5</span>, <span class="n">1.15</span>); it.s = R(<span class="n">0.6</span>, <span class="n">1.4</span>); it.tint = mix(<span class="n">0xff9f2e</span>, GOLD_LIGHT, Math.random()); it.a = R(<span class="n">0.5</span>, <span class="n">1</span>);
+        });
+        <span class="k">this</span>._emit(<span class="s">'raydots'</span>, <span class="n">150</span> * burstOn, dt, <span class="k">this</span>._sparks, (it) =&gt; {
+          <span class="k">const</span> a = R(<span class="n">0</span>, TAU), sp = R(<span class="n">80</span>, <span class="n">420</span>);
+          it.x = CX; it.y = H * <span class="n">0.47</span>; it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = <span class="n">0.6</span>;
+          it.max = R(<span class="n">0.8</span>, <span class="n">1.8</span>); it.s = R(<span class="n">0.1</span>, <span class="n">0.26</span>); it.s1 = it.s; it.tint = GOLD_LIGHT; it.tw = <span class="n">1</span>;
+        });
+      }
+      <span class="k">this</span>._core.alpha = win(T, <span class="n">0</span>, <span class="n">2.0</span>, <span class="n">0.05</span>, <span class="n">0.3</span>) * (<span class="n">0.8</span> + <span class="n">0.2</span> * Math.sin(t * <span class="n">20</span>));
+      <span class="k">this</span>._core.scale.set((<span class="n">0.35</span> + <span class="n">0.15</span> * Math.sin(t * <span class="n">9</span>)) * (<span class="n">1</span> + <span class="n">2.5</span> * win(T, <span class="n">1.7</span>, <span class="n">2.1</span>, <span class="n">0.05</span>, <span class="n">0.3</span>)));
+
+      <span class="c">// 0,7–2,7 с: золотые волны нитей поперёк экрана</span>
+      <span class="k">const</span> g1 = <span class="n">0.75</span> * win(T, <span class="n">0.65</span>, <span class="n">2.3</span>, <span class="n">0.5</span>, <span class="n">0.45</span>);
+      <span class="k">const</span> grow = easeOutCubic((T - <span class="n">0.65</span>) / <span class="n">0.9</span>);
+      <span class="k">this</span>._gold1.set(g1, (u, i, out) =&gt; {
+        <span class="k">const</span> edge = Math.min(<span class="n">1</span>, Math.abs(u - <span class="n">0.5</span>) * <span class="n">2</span> / Math.max(<span class="n">0.05</span>, <span class="n">1</span> - grow * <span class="n">0.95</span>));   <span class="c">// волна выходит от краёв к центру</span>
+        <span class="k">const</span> r1 = Math.sin(i * <span class="n">12.9898</span>) * <span class="n">0.5</span> + <span class="n">0.5</span>, r2 = Math.sin(i * <span class="n">78.233</span>) * <span class="n">0.5</span> + <span class="n">0.5</span>;   <span class="c">// свои параметры у каждой нити</span>
+        <span class="k">const</span> amp = (<span class="n">55</span> + <span class="n">50</span> * r1) * (<span class="n">0.35</span> + <span class="n">0.65</span> * grow) * (<span class="n">0.55</span> + <span class="n">0.45</span> * edge);
+        out[<span class="n">0</span>] = -<span class="n">80</span> + u * (W + <span class="n">160</span>);
+        out[<span class="n">1</span>] = H * <span class="n">0.5</span> + Math.sin(u * TAU * (<span class="n">1.5</span> + <span class="n">0.5</span> * r2) + t * (<span class="n">2.0</span> + r1) + i * <span class="n">0.55</span>) * amp
+          + Math.sin(u * TAU * (<span class="n">3.5</span> + <span class="n">2</span> * r1) - t * <span class="n">3.1</span> + i) * (<span class="n">10</span> + <span class="n">14</span> * r2) + (r2 - <span class="n">0.5</span>) * <span class="n">30</span>;
+      });
+
+      <span class="c">// 1,2 с: «M» в центре; 1,6–1,9 с: MEGA влетает из камеры</span>
+      <span class="k">const</span> megaY = H * <span class="n">0.47</span> - <span class="n">0.11</span> * H * easeInOut((T - <span class="n">2.65</span>) / <span class="n">0.35</span>) - <span class="n">0.16</span> * H * easeInOut((T - <span class="n">5.4</span>) / <span class="n">0.5</span>);
+      <span class="k">const</span> textScale = <span class="n">1</span> - <span class="n">0.1</span> * easeInOut((T - <span class="n">5.4</span>) / <span class="n">0.5</span>);
+      <span class="k">this</span>._mega.forEach((s, i) =&gt; {
+        <span class="k">if</span> (i === <span class="n">0</span> &amp;&amp; T &gt;= <span class="n">1.15</span> &amp;&amp; T &lt; <span class="n">1.62</span>) {
+          <span class="k">const</span> u = (T - <span class="n">1.15</span>) / <span class="n">0.47</span>;
+          s.alpha = Math.min(<span class="n">1</span>, u * <span class="n">4</span>); s.scale.set(<span class="n">0.6</span> + <span class="n">0.15</span> * u); s.x = CX; s.y = H * <span class="n">0.47</span>;
+          <span class="k">return</span>;
+        }
+        <span class="k">const</span> t0 = <span class="n">1.62</span> + i * <span class="n">0.045</span>, u = (T - t0) / <span class="n">0.24</span>;
+        <span class="k">if</span> (u &lt; <span class="n">0</span>) { <span class="k">if</span> (!(i === <span class="n">0</span> &amp;&amp; T &gt;= <span class="n">1.15</span>)) s.alpha = <span class="n">0</span>; <span class="k">return</span>; }
+        <span class="k">const</span> k = easeOutCubic(u), first = i === <span class="n">0</span>;          <span class="c">// «M» уже в кадре: растёт из центра, остальные летят из камеры</span>
+        s.alpha = first ? <span class="n">1</span> : Math.min(<span class="n">1</span>, u * <span class="n">3</span>);
+        s.scale.set(lerp(first ? <span class="n">0.75</span> : <span class="n">3.2</span>, <span class="n">1</span>, k) * textScale);
+        s.x = CX + s.homeX * lerp(first ? <span class="n">0</span> : <span class="n">2.4</span>, <span class="n">1</span>, k) * textScale;
+        s.y = megaY + (<span class="n">1</span> - k) * <span class="n">40</span>;
+      });
+      <span class="k">this</span>._once(<span class="s">'megaHit'</span>, T, <span class="n">1.86</span>, () =&gt; <span class="k">this</span>._megaHit());
+
+      <span class="c">// 2,75 с: WIN поднимается снизу</span>
+      <span class="k">const</span> winY = H * <span class="n">0.63</span> - <span class="n">0.2</span> * H * easeInOut((T - <span class="n">5.4</span>) / <span class="n">0.5</span>);
+      <span class="k">this</span>._win.forEach((s, i) =&gt; {
+        <span class="k">const</span> t0 = <span class="n">2.72</span> + i * <span class="n">0.04</span>, u = (T - t0) / <span class="n">0.3</span>;
+        <span class="k">if</span> (u &lt; <span class="n">0</span>) { s.alpha = <span class="n">0</span>; <span class="k">return</span>; }
+        <span class="k">const</span> k = easeOutBack(u);
+        s.alpha = Math.min(<span class="n">1</span>, u * <span class="n">3</span>);
+        s.scale.set(lerp(<span class="n">2.0</span>, <span class="n">1</span>, easeOutCubic(u)) * textScale);
+        s.x = CX + s.homeX * textScale;
+        s.y = lerp(H + <span class="n">160</span>, winY, k);
+      });
+      <span class="k">this</span>._once(<span class="s">'winHit'</span>, T, <span class="n">3.0</span>, () =&gt; { <span class="k">this</span>._shake = <span class="n">0.7</span>; <span class="k">this</span>._burst(<span class="n">140</span>, <span class="k">this</span>._sparks, (it) =&gt; <span class="k">this</span>._spark(it, CX + R(-<span class="n">200</span>, <span class="n">200</span>), H * <span class="n">0.62</span> + R(-<span class="n">30</span>, <span class="n">30</span>), R(<span class="n">0</span>, TAU), R(<span class="n">150</span>, <span class="n">520</span>))); });
+      <span class="k">this</span>._textGlow.position.set(CX, (megaY + winY) / <span class="n">2</span>);
+      <span class="k">this</span>._textGlow.scale.set(<span class="n">4.2</span> * textScale, <span class="n">2.3</span> * textScale);
+      <span class="k">this</span>._textGlow.alpha = T &gt; <span class="n">1.7</span> ? <span class="n">0.13</span> + <span class="n">0.04</span> * Math.sin(t * <span class="n">3</span>) : <span class="n">0</span>;
+
+      <span class="c">// 2,9–5,1 с: синие и оранжевые электрические ленты; с 4 с закручиваются вокруг надписи</span>
+      <span class="k">const</span> el = win(T, <span class="n">2.85</span>, <span class="n">4.95</span>, <span class="n">0.25</span>, <span class="n">0.3</span>);
+      <span class="k">const</span> loopK = easeInOut((T - <span class="n">3.7</span>) / <span class="n">0.5</span>);
+      <span class="k">const</span> cy = H * <span class="n">0.5</span>;
+      <span class="k">this</span>._elec.set(el, (u, i, out) =&gt; {
+        <span class="k">const</span> hot = i &gt;= <span class="n">3</span>, j = i % <span class="n">3</span>, side = hot ? Math.PI : <span class="n">0</span>;
+        <span class="k">const</span> wx = -<span class="n">60</span> + u * (W + <span class="n">120</span>);
+        <span class="k">const</span> wy = cy + Math.sin(u * TAU * <span class="n">2.1</span> + t * (hot ? -<span class="n">4.2</span> : <span class="n">4.6</span>) + j * <span class="n">0.8</span> + side) * (<span class="n">38</span> + j * <span class="n">10</span>) + (Math.random() - <span class="n">0.5</span>) * <span class="n">7</span>;
+        <span class="k">const</span> a = (hot ? -<span class="n">0.3</span> : <span class="n">0.7</span>) * Math.PI + u * TAU * (<span class="n">0.45</span> + <span class="n">0.08</span> * j) + t * (<span class="n">1.4</span> + <span class="n">0.35</span> * j) + j * <span class="n">0.9</span>;   <span class="c">// незамкнутая дуга: синяя сверху слева, оранжевая снизу справа</span>
+        <span class="k">const</span> wob = Math.sin(a * <span class="n">2</span> + t * <span class="n">3.2</span> + j) * <span class="n">34</span> + Math.sin(a * <span class="n">5</span> - t * <span class="n">6</span> + j * <span class="n">2</span>) * <span class="n">10</span>;
+        <span class="k">const</span> ex = CX + Math.cos(a) * (<span class="n">370</span> + j * <span class="n">34</span> + wob);
+        <span class="k">const</span> ey = cy + Math.sin(a) * (<span class="n">185</span> + j * <span class="n">22</span> + wob * <span class="n">0.6</span>) + (Math.random() - <span class="n">0.5</span>) * <span class="n">6</span>;
+        out[<span class="n">0</span>] = lerp(wx, ex, loopK); out[<span class="n">1</span>] = lerp(wy, ey, loopK);
+      });
+      <span class="k">if</span> (el &gt; <span class="n">0</span>) <span class="k">this</span>._emit(<span class="s">'elecSparks'</span>, <span class="n">70</span> * el, dt, <span class="k">this</span>._sparks, (it) =&gt; {
+        <span class="k">this</span>._elec.sample(<span class="k">this</span>._tmp);
+        <span class="k">this</span>._spark(it, <span class="k">this</span>._tmp[<span class="n">0</span>], <span class="k">this</span>._tmp[<span class="n">1</span>], R(<span class="n">0</span>, TAU), R(<span class="n">20</span>, <span class="n">90</span>));
+        it.tint = Math.random() &lt; <span class="n">0.5</span> ? <span class="n">0x9ff8ff</span> : <span class="n">0xffb36b</span>; it.max = R(<span class="n">0.3</span>, <span class="n">0.6</span>);
+      });
+
+      <span class="c">// монеты и звёзды</span>
+      <span class="k">if</span> (T &gt; <span class="n">2.0</span> &amp;&amp; T &lt; <span class="n">4.9</span>) {
+        <span class="k">this</span>._emit(<span class="s">'coinRain1'</span>, <span class="n">9</span>, dt, <span class="k">this</span>._coins, (it) =&gt; <span class="k">this</span>._coin(it, R(<span class="n">40</span>, W - <span class="n">40</span>), -<span class="n">40</span>, R(-<span class="n">40</span>, <span class="n">40</span>), R(<span class="n">80</span>, <span class="n">200</span>), <span class="n">320</span>, R(<span class="n">0.22</span>, <span class="n">0.42</span>)));
+        <span class="k">this</span>._emit(<span class="s">'starFall'</span>, <span class="n">16</span>, dt, <span class="k">this</span>._stars, (it) =&gt; <span class="k">this</span>._star(it, R(<span class="n">0</span>, W), -<span class="n">20</span>, R(-<span class="n">30</span>, <span class="n">30</span>), R(<span class="n">60</span>, <span class="n">160</span>)));
+      }
+
+      <span class="c">// 4,8–6,6 с: фейерверки и прожекторы</span>
+      <span class="k">const</span> fwPlan = [[<span class="n">4.65</span>, <span class="n">0.22</span>, <span class="n">0.22</span>, PINK], [<span class="n">4.8</span>, <span class="n">0.74</span>, <span class="n">0.2</span>, GREEN], [<span class="n">4.98</span>, <span class="n">0.3</span>, <span class="n">0.5</span>, GREEN], [<span class="n">5.15</span>, <span class="n">0.84</span>, <span class="n">0.44</span>, PINK], [<span class="n">5.4</span>, <span class="n">0.12</span>, <span class="n">0.4</span>, GREEN], [<span class="n">5.65</span>, <span class="n">0.62</span>, <span class="n">0.14</span>, PINK], [<span class="n">5.9</span>, <span class="n">0.4</span>, <span class="n">0.26</span>, VIOLET], [<span class="n">6.1</span>, <span class="n">0.88</span>, <span class="n">0.2</span>, GREEN]];
+      fwPlan.forEach(([at, fx, fy, col], n) =&gt; <span class="k">this</span>._once(<span class="s">'fw'</span> + n, T, at, () =&gt; <span class="k">this</span>._firework(fx * W, fy * H, col)));
+      <span class="k">const</span> bm = win(T, <span class="n">4.6</span>, <span class="n">6.6</span>, <span class="n">0.3</span>, <span class="n">0.6</span>);
+      <span class="k">this</span>._beams.visible = bm &gt; <span class="n">0</span>;
+      <span class="k">for</span> (<span class="k">const</span> { b, base, ph } <span class="k">of</span> <span class="k">this</span>._beamList) {
+        b.rotation = base + Math.sin(t * <span class="n">0.9</span> + ph) * <span class="n">0.35</span>;
+        b.alpha = bm * (<span class="n">0.32</span> + <span class="n">0.14</span> * Math.sin(t * <span class="n">2.3</span> + ph));
+      }
+
+      <span class="c">// 4,9–5,6 с: фонтан монет из-под надписи</span>
+      <span class="k">if</span> (T &gt; <span class="n">4.75</span> &amp;&amp; T &lt; <span class="n">5.4</span>) <span class="k">this</span>._emit(<span class="s">'fountain'</span>, <span class="n">70</span>, dt, <span class="k">this</span>._coins, (it) =&gt; <span class="k">this</span>._coin(it, CX + R(-<span class="n">80</span>, <span class="n">80</span>), H * <span class="n">0.76</span>, R(-<span class="n">560</span>, <span class="n">560</span>), R(-<span class="n">900</span>, -<span class="n">560</span>), <span class="n">1500</span>, R(<span class="n">0.34</span>, <span class="n">0.7</span>)));
+
+      <span class="c">// 5,5–10 с: золотые нити внизу, счётчик, дождь монет</span>
+      <span class="k">const</span> g2 = <span class="n">0.62</span> * win(T, <span class="n">5.45</span>, <span class="n">10.5</span>, <span class="n">0.6</span>, <span class="n">0.5</span>);
+      <span class="k">this</span>._gold2.set(g2, (u, i, out) =&gt; {
+        <span class="k">const</span> r1 = Math.sin(i * <span class="n">12.9898</span>) * <span class="n">0.5</span> + <span class="n">0.5</span>, r2 = Math.sin(i * <span class="n">78.233</span>) * <span class="n">0.5</span> + <span class="n">0.5</span>;
+        out[<span class="n">0</span>] = -<span class="n">100</span> + u * (W + <span class="n">200</span>);
+        out[<span class="n">1</span>] = H * <span class="n">0.72</span> - (u - <span class="n">0.5</span>) * <span class="n">160</span> + Math.sin(u * TAU * (<span class="n">0.9</span> + <span class="n">0.5</span> * r1) + t * (<span class="n">1.0</span> + <span class="n">0.6</span> * r2) + i * <span class="n">0.7</span>) * (<span class="n">60</span> + <span class="n">60</span> * r2)
+          + Math.sin(u * TAU * (<span class="n">2.4</span> + <span class="n">1.6</span> * r2) - t * <span class="n">1.8</span> + i * <span class="n">1.3</span>) * (<span class="n">14</span> + <span class="n">24</span> * r1) + Math.sin(u * TAU * <span class="n">7.0</span> + t * <span class="n">3.0</span> + i) * <span class="n">4</span>;
+      });
+      <span class="k">this</span>._goldHaze.set(g2 * <span class="n">0.6</span>, (u, i, out) =&gt; {
+        out[<span class="n">0</span>] = -<span class="n">100</span> + u * (W + <span class="n">200</span>);
+        out[<span class="n">1</span>] = H * <span class="n">0.7</span> - (u - <span class="n">0.5</span>) * <span class="n">140</span> + Math.sin(u * TAU * <span class="n">1.15</span> + t * <span class="n">1.25</span> + i * <span class="n">0.5</span>) * <span class="n">84</span> + Math.sin(u * TAU * <span class="n">2.9</span> - t * <span class="n">1.8</span>) * <span class="n">22</span>;
+      });
+      <span class="k">if</span> (g2 &gt; <span class="n">0</span>) <span class="k">this</span>._emit(<span class="s">'goldSparks'</span>, <span class="n">260</span> * g2, dt, <span class="k">this</span>._sparks, (it) =&gt; {
+        <span class="k">this</span>._gold2.sample(<span class="k">this</span>._tmp);
+        <span class="k">this</span>._spark(it, <span class="k">this</span>._tmp[<span class="n">0</span>], <span class="k">this</span>._tmp[<span class="n">1</span>], R(<span class="n">0</span>, TAU), R(<span class="n">10</span>, <span class="n">70</span>));
+        it.g = <span class="n">40</span>; it.max = R(<span class="n">0.6</span>, <span class="n">1.4</span>); it.s = R(<span class="n">0.05</span>, <span class="n">0.13</span>);
+      });
+      <span class="k">if</span> (T &gt; <span class="n">5.6</span> &amp;&amp; T &lt; <span class="n">9.7</span>) <span class="k">this</span>._emit(<span class="s">'coinRain2'</span>, <span class="n">42</span>, dt, <span class="k">this</span>._coins, (it) =&gt; {
+        <span class="k">const</span> depth = Math.random();
+        <span class="k">this</span>._coin(it, R(-<span class="n">20</span>, W + <span class="n">20</span>), -<span class="n">60</span>, R(-<span class="n">60</span>, <span class="n">60</span>), lerp(<span class="n">160</span>, <span class="n">460</span>, depth), lerp(<span class="n">300</span>, <span class="n">650</span>, depth), lerp(<span class="n">0.2</span>, <span class="n">0.72</span>, depth));
+      });
+      <span class="k">if</span> (T &gt; <span class="n">6.0</span> &amp;&amp; T &lt; <span class="n">9.7</span>) <span class="k">this</span>._emit(<span class="s">'glints'</span>, <span class="n">7</span>, dt, <span class="k">this</span>._glints, (it) =&gt; {
+        it.x = CX + R(-<span class="n">420</span>, <span class="n">420</span>); it.y = R(H * <span class="n">0.12</span>, H * <span class="n">0.85</span>); it.vx = <span class="n">0</span>; it.vy = R(-<span class="n">10</span>, <span class="n">10</span>);
+        it.max = R(<span class="n">0.35</span>, <span class="n">0.7</span>); it.s = R(<span class="n">0.35</span>, <span class="n">0.8</span>); it.tint = Math.random() &lt; <span class="n">0.3</span> ? <span class="n">0xbfe8ff</span> : <span class="n">0xffffff</span>; it.vr = R(-<span class="n">1</span>, <span class="n">1</span>);
+      });
+
+      <span class="c">// счётчик</span>
+      <span class="k">this</span>._counter.visible = T &gt; <span class="n">5.7</span>;
+      <span class="k">if</span> (<span class="k">this</span>._counter.visible) {
+        <span class="k">const</span> u = clamp01((T - <span class="n">5.75</span>) / <span class="n">3.6</span>);
+        <span class="k">const</span> value = Math.round(<span class="k">this</span>.amount * (<span class="n">1</span> - Math.pow(<span class="n">1</span> - u, <span class="n">6</span>)));
+        <span class="k">const</span> pop = easeOutBack((T - <span class="n">5.7</span>) / <span class="n">0.35</span>);
+        <span class="k">this</span>._layoutCounter(value.toLocaleString(<span class="s">'en-US'</span>), H * <span class="n">0.645</span>, pop * (<span class="n">1</span> + <span class="n">0.06</span> * win(T, <span class="n">9.35</span>, <span class="n">9.8</span>, <span class="n">0.05</span>, <span class="n">0.4</span>)));
+      }
+
+      <span class="c">// 6,8 с: лучи за надписью; 7,45 с: вспышка</span>
+      <span class="k">this</span>._rays.alpha = win(T, <span class="n">6.8</span>, <span class="n">10.5</span>, <span class="n">0.6</span>, <span class="n">0.5</span>) * (<span class="n">0.28</span> + <span class="n">0.06</span> * Math.sin(t * <span class="n">1.7</span>));
+      <span class="k">this</span>._rays.rotation = t * <span class="n">0.12</span>;
+      <span class="k">this</span>._rays.scale.set(<span class="n">5.2</span>);
+      <span class="k">const</span> fl = win(T, <span class="n">7.42</span>, <span class="n">8.0</span>, <span class="n">0.06</span>, <span class="n">0.5</span>);
+      <span class="k">this</span>._flash.alpha = fl; <span class="k">this</span>._flash.tint = <span class="n">0xfff1c8</span>;
+      <span class="k">this</span>._flash.position.set(W * <span class="n">0.62</span>, H * <span class="n">0.66</span>); <span class="k">this</span>._flash.scale.set(<span class="n">1</span> + <span class="n">4.2</span> * fl);
+      <span class="k">this</span>._flare.alpha = fl; <span class="k">this</span>._flare.position.copyFrom(<span class="k">this</span>._flash.position); <span class="k">this</span>._flare.scale.set(<span class="n">3.4</span> * fl + <span class="n">0.6</span>, <span class="n">2.0</span>);
+      <span class="k">this</span>._once(<span class="s">'flash'</span>, T, <span class="n">7.45</span>, () =&gt; { <span class="k">this</span>._shake = <span class="n">0.4</span>; <span class="k">this</span>._burst(<span class="n">120</span>, <span class="k">this</span>._sparks, (it) =&gt; <span class="k">this</span>._spark(it, W * <span class="n">0.62</span>, H * <span class="n">0.66</span>, R(<span class="n">0</span>, TAU), R(<span class="n">200</span>, <span class="n">700</span>))); });
+
+      <span class="c">// 8,75–9,45 с: неоновые полосы скорости</span>
+      <span class="k">const</span> neon = win(T, <span class="n">8.72</span>, <span class="n">9.3</span>, <span class="n">0.08</span>, <span class="n">0.2</span>);
+      <span class="k">if</span> (neon &gt; <span class="n">0</span>) <span class="k">this</span>._emit(<span class="s">'neon'</span>, <span class="n">520</span> * neon, dt, <span class="k">this</span>._streaks, (it) =&gt; {
+        <span class="k">const</span> a = R(<span class="n">0</span>, TAU), sp = R(<span class="n">1500</span>, <span class="n">2600</span>);
+        it.x = CX + Math.cos(a) * R(<span class="n">30</span>, <span class="n">120</span>); it.y = H * <span class="n">0.45</span> + Math.sin(a) * R(<span class="n">20</span>, <span class="n">80</span>);
+        it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp;
+        it.max = R(<span class="n">0.3</span>, <span class="n">0.5</span>); it.s = R(<span class="n">1.6</span>, <span class="n">2.8</span>); it.a = <span class="n">1</span>; it.thick = <span class="n">0.9</span>;
+        it.tint = [PINK, CYAN, YELLOW, VIOLET, <span class="n">0xff8a3a</span>][(Math.random() * <span class="n">5</span>) | <span class="n">0</span>];
+      });
+
+      <span class="c">// 9,1–10 с: два искровых фонтана под счётчиком</span>
+      <span class="k">if</span> (T &gt; <span class="n">9.1</span> &amp;&amp; T &lt; <span class="n">9.95</span>) <span class="k">for</span> (<span class="k">const</span> fx <span class="k">of</span> [<span class="n">0.37</span>, <span class="n">0.63</span>]) <span class="k">this</span>._emit(<span class="s">'fount'</span> + fx, <span class="n">240</span>, dt, <span class="k">this</span>._sparks, (it) =&gt; {
+        it.x = fx * W + R(-<span class="n">14</span>, <span class="n">14</span>); it.y = H * <span class="n">0.92</span>; it.vx = R(-<span class="n">90</span>, <span class="n">90</span>); it.vy = R(-<span class="n">700</span>, -<span class="n">420</span>); it.g = <span class="n">720</span>;
+        it.max = R(<span class="n">0.7</span>, <span class="n">1.1</span>); it.s = R(<span class="n">0.13</span>, <span class="n">0.24</span>); it.s1 = it.s * <span class="n">0.5</span>; it.tint = mix(GOLD, GOLD_LIGHT, Math.random()); it.tw = <span class="n">1</span>;
+      });
+    }
+
+    <span class="c">// ---- шаг частиц</span>
+    <span class="k">this</span>._dust.step(dt, (it, k, p) =&gt; {
+      p.scaleX = p.scaleY = it.s; p.tint = it.tint;
+      p.alpha = Math.sin(k * Math.PI) * (<span class="n">0.4</span> + <span class="n">0.6</span> * Math.abs(Math.sin(t * <span class="n">3</span> + it.ph)));
+    });
+    <span class="k">this</span>._streaks.step(dt, (it, k, p) =&gt; {
+      <span class="k">const</span> sp = Math.hypot(it.vx, it.vy);
+      p.rotation = Math.atan2(it.vy, it.vx);
+      p.scaleX = (<span class="n">0.5</span> + sp / <span class="n">300</span>) * it.s * (<span class="n">0.5</span> + k * <span class="n">1.6</span>); p.scaleY = (it.thick || <span class="n">0.45</span>) * it.s;
+      p.tint = it.tint; p.alpha = it.a * Math.min(<span class="n">1</span>, k * <span class="n">8</span>) * (<span class="n">1</span> - k);
+    });
+    <span class="k">const</span> dots = (it, k, p) =&gt; {
+      <span class="k">const</span> s = lerp(it.s, it.s1 ?? it.s, k);
+      p.scaleX = p.scaleY = s; p.tint = it.tint;
+      p.alpha = Math.min(<span class="n">1</span>, k * <span class="n">10</span>) * (<span class="n">1</span> - k) * (it.tw ? <span class="n">0.55</span> + <span class="n">0.45</span> * Math.sin(it.life * <span class="n">40</span> + it.x) : <span class="n">1</span>);
+    };
+    <span class="k">this</span>._sparks.step(dt, dots);
+    <span class="k">this</span>._shell.step(dt, dots);
+    <span class="k">this</span>._fw.step(dt, (it, k, p) =&gt; {
+      p.scaleX = p.scaleY = it.s * (<span class="n">1</span> - k * <span class="n">0.5</span>);
+      p.tint = mix(<span class="n">0xffffff</span>, it.tint, Math.min(<span class="n">1</span>, k * <span class="n">5</span>));
+      p.alpha = Math.min(<span class="n">1</span>, (<span class="n">1</span> - k) * <span class="n">1.4</span>) * (<span class="n">0.65</span> + <span class="n">0.35</span> * Math.sin(it.life * <span class="n">30</span> + it.ph));
+    });
+    <span class="k">this</span>._coins.step(dt, (it, k, p) =&gt; {
+      it.ph += it.vr * dt;
+      <span class="k">const</span> c = Math.cos(it.ph), face = Math.max(<span class="n">0.12</span>, Math.abs(c));
+      p.scaleX = it.s * face; p.scaleY = it.s; p.rotation = it.r;
+      <span class="k">const</span> v = Math.round(<span class="n">255</span> * (<span class="n">0.5</span> + <span class="n">0.5</span> * face));
+      p.tint = (v &lt;&lt; <span class="n">16</span>) | (v &lt;&lt; <span class="n">8</span>) | v;
+      p.alpha = Math.min(<span class="n">1</span>, k * <span class="n">12</span>) * (k &gt; <span class="n">0.85</span> ? (<span class="n">1</span> - k) / <span class="n">0.15</span> : <span class="n">1</span>);
+    });
+    <span class="k">this</span>._stars.step(dt, (it, k, p) =&gt; {
+      p.scaleX = it.s * Math.abs(Math.cos(it.life * <span class="n">5</span> + it.ph)) + <span class="n">0.05</span>; p.scaleY = it.s; p.rotation = it.r;
+      p.alpha = Math.min(<span class="n">1</span>, k * <span class="n">10</span>) * (k &gt; <span class="n">0.8</span> ? (<span class="n">1</span> - k) / <span class="n">0.2</span> : <span class="n">1</span>);
+    });
+    <span class="k">this</span>._glints.step(dt, (it, k, p) =&gt; {
+      <span class="k">const</span> s = Math.sin(k * Math.PI);
+      p.scaleX = p.scaleY = it.s * s; p.rotation = it.r; p.tint = it.tint; p.alpha = s;
+    });
+
+    <span class="c">// тряска на ударах</span>
+    <span class="k">this</span>._shake = Math.max(<span class="n">0</span>, <span class="k">this</span>._shake - dt * <span class="n">2.5</span>);
+    <span class="k">const</span> sh = <span class="k">this</span>._shake * <span class="k">this</span>._shake * <span class="n">16</span>;
+    <span class="k">this</span>._root.position.set((Math.random() - <span class="n">0.5</span>) * <span class="n">2</span> * sh, (Math.random() - <span class="n">0.5</span>) * <span class="n">2</span> * sh);
+  }
+
+  <span class="c">// ---- кирпичики</span>
+  _spark(it, x, y, a, sp) {
+    it.x = x; it.y = y; it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = <span class="n">1.4</span>; it.g = <span class="n">60</span>;
+    it.max = <span class="n">0.4</span> + Math.random() * <span class="n">0.8</span>; it.s = <span class="n">0.06</span> + Math.random() * <span class="n">0.12</span>; it.s1 = it.s * <span class="n">0.4</span>;
+    it.tint = mix(GOLD, GOLD_LIGHT, Math.random()); it.tw = Math.random() &lt; <span class="n">0.5</span> ? <span class="n">1</span> : <span class="n">0</span>;
+  }
+  _coin(it, x, y, vx, vy, g, s) {
+    it.x = x; it.y = y; it.vx = vx; it.vy = vy; it.g = g; it.drag = <span class="n">0.05</span>;
+    it.s = s; it.ph = Math.random() * TAU; it.vr = (Math.random() &lt; <span class="n">0.5</span> ? -<span class="n">1</span> : <span class="n">1</span>) * (<span class="n">4</span> + Math.random() * <span class="n">8</span>);
+    it.r = (Math.random() - <span class="n">0.5</span>) * <span class="n">0.8</span>; it.max = <span class="n">3.5</span>;
+  }
+  _star(it, x, y, vx, vy) {
+    it.x = x; it.y = y; it.vx = vx; it.vy = vy; it.g = <span class="n">30</span>; it.drag = <span class="n">0.2</span>;
+    it.s = <span class="n">0.18</span> + Math.random() * <span class="n">0.35</span>; it.ph = Math.random() * TAU; it.vr = (Math.random() - <span class="n">0.5</span>) * <span class="n">6</span>; it.max = <span class="n">4</span>;
+  }
+  _megaHit() {
+    <span class="k">const</span> R = (a, b) =&gt; a + (b - a) * Math.random();
+    <span class="k">this</span>._shake = <span class="n">1</span>;
+    <span class="c">// кольцо золотой пыли, разлетающееся сферой</span>
+    <span class="k">this</span>._burst(<span class="n">1100</span>, <span class="k">this</span>._shell, (it) =&gt; {
+      <span class="k">const</span> a = R(<span class="n">0</span>, TAU), shell = Math.random() &lt; <span class="n">0.75</span>, sp = shell ? R(<span class="n">760</span>, <span class="n">860</span>) : R(<span class="n">160</span>, <span class="n">760</span>);
+      it.x = CX + Math.cos(a) * <span class="n">40</span>; it.y = H * <span class="n">0.47</span> + Math.sin(a) * <span class="n">40</span>;
+      it.vx = Math.cos(a) * sp * <span class="n">1.05</span>; it.vy = Math.sin(a) * sp; it.drag = <span class="n">2.2</span>;
+      it.max = R(<span class="n">1.3</span>, <span class="n">2.3</span>); it.s = R(<span class="n">0.12</span>, <span class="n">0.3</span>); it.s1 = it.s * <span class="n">0.5</span>; it.tint = mix(GOLD, GOLD_LIGHT, Math.random()); it.tw = <span class="n">1</span>;
+    });
+    <span class="k">this</span>._burst(<span class="n">90</span>, <span class="k">this</span>._stars, (it) =&gt; { <span class="k">const</span> a = R(<span class="n">0</span>, TAU), sp = R(<span class="n">200</span>, <span class="n">700</span>); <span class="k">this</span>._star(it, CX, H * <span class="n">0.47</span>, Math.cos(a) * sp, Math.sin(a) * sp); it.drag = <span class="n">1.2</span>; });
+    <span class="k">this</span>._burst(<span class="n">26</span>, <span class="k">this</span>._coins, (it) =&gt; { <span class="k">const</span> a = R(<span class="n">0</span>, TAU), sp = R(<span class="n">450</span>, <span class="n">950</span>); <span class="k">this</span>._coin(it, CX, H * <span class="n">0.47</span>, Math.cos(a) * sp, Math.sin(a) * sp, <span class="n">380</span>, R(<span class="n">0.25</span>, <span class="n">0.5</span>)); it.drag = <span class="n">0.8</span>; });
+    <span class="k">this</span>._burst(<span class="n">220</span>, <span class="k">this</span>._sparks, (it) =&gt; <span class="k">this</span>._spark(it, CX + R(-<span class="n">60</span>, <span class="n">60</span>), H * <span class="n">0.47</span> + R(-<span class="n">30</span>, <span class="n">30</span>), R(<span class="n">0</span>, TAU), R(<span class="n">200</span>, <span class="n">900</span>)));
+  }
+  _firework(x, y, col) {
+    <span class="k">const</span> R = (a, b) =&gt; a + (b - a) * Math.random();
+    <span class="k">this</span>._burst(<span class="n">380</span>, <span class="k">this</span>._fw, (it) =&gt; {
+      <span class="k">const</span> a = R(<span class="n">0</span>, TAU), sp = R(<span class="n">120</span>, <span class="n">520</span>) * (Math.random() &lt; <span class="n">0.65</span> ? <span class="n">1</span> : <span class="n">0.55</span>);
+      it.x = x; it.y = y; it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = <span class="n">1.4</span>; it.g = <span class="n">80</span>;
+      it.max = R(<span class="n">1.3</span>, <span class="n">2.1</span>); it.s = R(<span class="n">0.16</span>, <span class="n">0.28</span>); it.tint = col; it.ph = R(<span class="n">0</span>, TAU);
+    });
+    <span class="k">this</span>._burst(<span class="n">1</span>, <span class="k">this</span>._fw, (it) =&gt; { it.x = x; it.y = y; it.vx = it.vy = <span class="n">0</span>; it.max = <span class="n">0.45</span>; it.s = <span class="n">2.2</span>; it.tint = <span class="n">0xffffff</span>; it.ph = <span class="n">0</span>; });
+  }
+  _layoutCounter(str, y, scale) {
+    <span class="k">if</span> (str !== <span class="k">this</span>._shown) {
+      <span class="k">this</span>._shown = str;
+      <span class="k">let</span> x = <span class="n">0</span>;
+      <span class="k">const</span> xs = [];
+      <span class="k">for</span> (<span class="k">const</span> ch <span class="k">of</span> str) { <span class="k">const</span> w = ch === <span class="s">','</span> ? <span class="k">this</span>._digits[<span class="s">','</span>].w * <span class="n">0.9</span> : <span class="k">this</span>._digitW; xs.push(x + w / <span class="n">2</span>); x += w; }
+      <span class="k">this</span>._counterSprites.forEach((s, i) =&gt; {
+        <span class="k">if</span> (i &lt; str.length) { s.visible = <span class="k">true</span>; s.texture = <span class="k">this</span>._digits[str[i]].tex; s.x = xs[i] - x / <span class="n">2</span>; s.y = <span class="n">0</span>; }
+        <span class="k">else</span> s.visible = <span class="k">false</span>;
+      });
+    }
+    <span class="k">this</span>._counter.position.set(CX, y);
+    <span class="k">this</span>._counter.scale.set(scale);
+  }
+
+  destroy(options) {
+    <span class="c">// общие текстуры не уничтожаем: их используют другие экземпляры; буквы и цифры — свои</span>
+    <span class="k">const</span> own = [...<span class="k">this</span>._mega, ...<span class="k">this</span>._win].map((s) =&gt; s.texture).concat(Object.values(<span class="k">this</span>._digits).map((d) =&gt; d.tex));
+    <span class="k">super</span>.destroy({ children: <span class="k">true</span>, texture: <span class="k">false</span>, textureSource: <span class="k">false</span>, ...(<span class="k">typeof</span> options === <span class="s">'object'</span> ? options : {}) });
+    <span class="k">for</span> (<span class="k">const</span> tex <span class="k">of</span> own) tex.destroy(<span class="k">true</span>);
+  }
+}</pre>
+    </div>
+    <p class="note">Проверено на Pixi 8.22. С <code>background: false</code> сцена рисуется поверх твоей игры без тёмной подложки. Модуль, демо и все замеры — в репозитории <a href="https://github.com/vapes/Video-to-particles">vapes/Video-to-particles</a>.</p>
+  </section>
+</main>
+
+<script type="module">
+// ----- the module exactly as shown above (only the pixi.js import points to the CDN here)
+// mega-win.js — сцена «MEGA WIN» на 10 секунд, собранная кодом. Pixi 8.
+// Ни одной внешней картинки: лучи, нити, монеты, звёзды, буквы и цифры рисуются
+// в canvas при первом создании, дальше всё считается частицами и лентами каждый кадр.
+// Сцена в координатах 1280×720 — масштабируй контейнер под свой экран.
+import { Container, Sprite, Texture, ParticleContainer, Particle, MeshRope, Point, Graphics } from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
+
+const W = 1280, H = 720, CX = W / 2, TAU = Math.PI * 2;
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const lerp = (a, b, k) => a + (b - a) * k;
+const easeOutCubic = (t) => 1 - Math.pow(1 - clamp01(t), 3);
+const easeInOut = (t) => { t = clamp01(t); return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+const easeOutBack = (t) => { t = clamp01(t); const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+// окно времени: 0 вне [a, b], плавный вход за fi секунд и выход за fo секунд
+const win = (t, a, b, fi = 0.3, fo = 0.4) => (t < a || t > b ? 0 : Math.min(1, (t - a) / fi, (b - t) / fo));
+const mix = (c1, c2, k) => {
+  const r = lerp((c1 >> 16) & 255, (c2 >> 16) & 255, k), g = lerp((c1 >> 8) & 255, (c2 >> 8) & 255, k), b = lerp(c1 & 255, c2 & 255, k);
+  return (r << 16) | (g << 8) | b;
+};
+const GOLD = 0xffc45e, GOLD_LIGHT = 0xffe7a8, PINK = 0xff4fd8, GREEN = 0x8cff4f, CYAN = 0x4ff0ff, ORANGE = 0xff7a2a, VIOLET = 0xa96bff, YELLOW = 0xffe14f;
+
+// ---------------------------------------------------------------- текстуры (один раз на приложение)
+let TEX = null;
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  return Texture.from(c);
+}
+function radial(g, x, y, r0, r1, stops) {
+  const gr = g.createRadialGradient(x, y, r0, x, y, r1);
+  for (const [o, c] of stops) gr.addColorStop(o, c);
+  return gr;
+}
+function starPath(g, cx, cy, n, r0, r1) {
+  g.beginPath();
+  for (let i = 0; i < n * 2; i++) {
+    const a = (i / (n * 2)) * TAU - Math.PI / 2, r = i % 2 ? r1 : r0;
+    g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+  }
+  g.closePath();
+}
+function textures() {
+  if (TEX) return TEX;
+  TEX = {
+    soft: canvasTex(64, 64, (g, w) => {
+      g.fillStyle = radial(g, w / 2, w / 2, 0, w / 2, [[0, 'rgba(255,255,255,1)'], [0.22, 'rgba(255,255,255,0.8)'], [0.55, 'rgba(255,255,255,0.18)'], [1, 'rgba(255,255,255,0)']]);
+      g.fillRect(0, 0, w, w);
+    }),
+    streak: canvasTex(128, 12, (g, w, h) => {
+      const lg = g.createLinearGradient(0, 0, w, 0);
+      lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.7, 'rgba(255,255,255,0.75)'); lg.addColorStop(1, 'rgba(255,255,255,1)');
+      g.fillStyle = lg;
+      g.beginPath(); g.moveTo(0, h / 2); g.quadraticCurveTo(w * 0.7, h * 0.15, w, h / 2); g.quadraticCurveTo(w * 0.7, h * 0.85, 0, h / 2); g.fill();
+    }),
+    coin: canvasTex(128, 128, (g, w) => {
+      const c = w / 2;
+      g.fillStyle = radial(g, c * 0.8, c * 0.7, 4, c, [[0, '#fff3b8'], [0.45, '#ffcf4a'], [0.85, '#c88a1c'], [1, '#8a5a10']]);
+      g.beginPath(); g.arc(c, c, c - 2, 0, TAU); g.fill();
+      g.lineWidth = 7; g.strokeStyle = '#a86e14'; g.beginPath(); g.arc(c, c, c - 14, 0, TAU); g.stroke();
+      g.lineWidth = 3; g.strokeStyle = 'rgba(255,240,180,0.9)'; g.beginPath(); g.arc(c, c, c - 9, Math.PI * 1.05, Math.PI * 1.75); g.stroke();
+      g.fillStyle = 'rgba(150,95,15,0.85)'; starPath(g, c, c + 2, 5, 30, 13); g.fill();
+      g.fillStyle = 'rgba(255,236,160,0.9)'; starPath(g, c - 2, c, 5, 27, 11); g.fill();
+    }),
+    star: canvasTex(64, 64, (g, w) => {
+      const lg = g.createLinearGradient(0, 0, w, w);
+      lg.addColorStop(0, '#fff6c0'); lg.addColorStop(0.5, '#ffc93f'); lg.addColorStop(1, '#b8740f');
+      g.fillStyle = lg; starPath(g, w / 2, w / 2 + 2, 5, w * 0.48, w * 0.2); g.fill();
+    }),
+    glint: canvasTex(64, 64, (g, w) => {
+      const c = w / 2;
+      g.fillStyle = radial(g, c, c, 0, c * 0.35, [[0, 'rgba(255,255,255,1)'], [1, 'rgba(255,255,255,0)']]);
+      g.fillRect(0, 0, w, w);
+      for (const [sx, sy] of [[1, 0.09], [0.09, 1]]) {
+        const gr = radial(g, c, c, 0, c, [[0, 'rgba(255,255,255,1)'], [1, 'rgba(255,255,255,0)']]);
+        g.save(); g.translate(c, c); g.scale(sx, sy); g.translate(-c, -c); g.fillStyle = gr; g.fillRect(0, 0, w, w); g.restore();
+      }
+    }),
+    glow: canvasTex(256, 256, (g, w) => {
+      g.fillStyle = radial(g, w / 2, w / 2, 0, w / 2, [[0, 'rgba(255,255,255,1)'], [0.2, 'rgba(255,255,255,0.55)'], [0.5, 'rgba(255,255,255,0.15)'], [1, 'rgba(255,255,255,0)']]);
+      g.fillRect(0, 0, w, w);
+    }),
+    rays: canvasTex(256, 256, (g, w) => {
+      g.translate(w / 2, w / 2);
+      const n = 26;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * TAU, half = i % 2 ? 0.03 : 0.06;
+        g.fillStyle = radial(g, 0, 0, w * 0.03, w * 0.5, [[0, `rgba(255,255,255,${i % 2 ? 0.5 : 0.9})`], [1, 'rgba(255,255,255,0)']]);
+        g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, w * 0.5, a - half, a + half); g.closePath(); g.fill();
+      }
+    }),
+    beam: canvasTex(64, 512, (g, w, h) => {
+      // луч прожектора: узкий у основания, расширяется вверх и гаснет
+      const lg = g.createLinearGradient(0, h, 0, 0);
+      lg.addColorStop(0, 'rgba(255,255,255,0.95)'); lg.addColorStop(0.6, 'rgba(255,255,255,0.35)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = lg;
+      g.beginPath(); g.moveTo(w / 2 - 3, h); g.lineTo(0, 0); g.lineTo(w, 0); g.lineTo(w / 2 + 3, h); g.closePath(); g.fill();
+    }),
+    line: canvasTex(32, 16, (g, w, h) => {
+      // поперечный профиль ленты: яркая середина, мягкие края
+      const lg = g.createLinearGradient(0, 0, 0, h);
+      lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.42, 'rgba(255,255,255,0.65)'); lg.addColorStop(0.5, 'rgba(255,255,255,1)');
+      lg.addColorStop(0.58, 'rgba(255,255,255,0.65)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = lg; g.fillRect(0, 0, w, h);
+    }),
+    haze: canvasTex(32, 32, (g, w, h) => {
+      const lg = g.createLinearGradient(0, 0, 0, h);
+      lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.5, 'rgba(255,255,255,0.6)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = lg; g.fillRect(0, 0, w, h);
+    }),
+    flare: canvasTex(512, 24, (g, w, h) => {
+      const lg = g.createLinearGradient(0, 0, w, 0);
+      lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.5, 'rgba(255,255,255,1)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = lg; g.fillRect(0, h * 0.35, w, h * 0.3);
+      g.fillStyle = radial(g, w / 2, h / 2, 0, h / 2, [[0, 'rgba(255,255,255,0.8)'], [1, 'rgba(255,255,255,0)']]);
+      g.fillRect(0, 0, w, h);
+    }),
+  };
+  return TEX;
+}
+
+// золотая объёмная буква или цифра: выдавливание вниз, градиент, тонкая обводка, свечение
+function goldGlyph(ch, size, font) {
+  const probe = document.createElement('canvas').getContext('2d');
+  probe.font = `900 ${size}px ${font}`;
+  const tw = Math.ceil(probe.measureText(ch).width);
+  const depth = Math.round(size * 0.07), pad = Math.round(size * 0.22);
+  const w = tw + pad * 2, h = Math.round(size * 1.25) + pad * 2;
+  const tex = canvasTex(w, h, (g) => {
+    g.font = `900 ${size}px ${font}`;
+    g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+    const x = pad, y = pad + size * 0.98;
+    g.shadowColor = 'rgba(255,170,40,0.35)'; g.shadowBlur = size * 0.07;
+    for (let i = depth; i >= 1; i--) { g.fillStyle = i > depth * 0.5 ? '#4a2c06' : '#7a4e0e'; g.fillText(ch, x + i * 0.25, y + i); }
+    g.shadowBlur = 0;
+    const lg = g.createLinearGradient(0, y - size * 0.78, 0, y);
+    lg.addColorStop(0, '#fffbe0'); lg.addColorStop(0.3, '#ffe17a'); lg.addColorStop(0.52, '#e7a72c');
+    lg.addColorStop(0.62, '#b8761a'); lg.addColorStop(0.8, '#f2c24a'); lg.addColorStop(1, '#fff0b0');
+    g.fillStyle = lg; g.fillText(ch, x, y);
+    g.lineWidth = Math.max(1.5, size * 0.012); g.strokeStyle = 'rgba(110,64,8,0.9)'; g.strokeText(ch, x, y);
+  });
+  return { tex, w: tw, h };
+}
+
+// ---------------------------------------------------------------- пулы частиц
+class Pool {
+  constructor(tex, n, blend = 'add') {
+    this.pc = new ParticleContainer({ texture: tex, dynamicProperties: { position: true, rotation: true, vertex: true, color: true, uvs: false } });
+    this.pc.blendMode = blend;
+    this.items = [];
+    for (let i = 0; i < n; i++) {
+      const p = new Particle({ texture: tex, anchorX: 0.5, anchorY: 0.5 });
+      this.items.push({ p, alive: false, life: 0, max: 1, x: 0, y: 0, vx: 0, vy: 0, g: 0, drag: 0, s: 1, s1: 1, r: 0, vr: 0, ph: 0, tint: 0xffffff, a: 1, tw: 0 });
+    }
+    this.next = 0;
+    this.alive = 0;
+  }
+  spawn() {
+    for (let i = 0; i < this.items.length; i++) {
+      const it = this.items[this.next];
+      this.next = (this.next + 1) % this.items.length;
+      if (!it.alive) { it.alive = true; it.life = 0; it.g = 0; it.drag = 0; it.vr = 0; it.r = 0; it.tw = 0; it.a = 1; it.s1 = null; it.thick = 0; return it; }
+    }
+    return null;
+  }
+  step(dt, fn) {
+    const list = this.pc.particleChildren;
+    list.length = 0;
+    for (const it of this.items) {
+      if (!it.alive) continue;
+      it.life += dt;
+      const k = it.life / it.max;
+      if (k >= 1) { it.alive = false; continue; }
+      const d = 1 - it.drag * dt;
+      it.vx *= d; it.vy *= d; it.vy += it.g * dt;
+      it.x += it.vx * dt; it.y += it.vy * dt; it.r += it.vr * dt;
+      fn(it, k, it.p);
+      it.p.x = it.x; it.p.y = it.y;
+      list.push(it.p);
+    }
+    this.alive = list.length;
+    this.pc.update();
+  }
+}
+
+// лента из нескольких нитей: каждая нить — MeshRope, форма задаётся функцией path(u, i) каждый кадр
+class Ribbon {
+  constructor(parent, { strands, tex, widths, tints, n = 56 }) {
+    this.container = new Container();
+    parent.addChild(this.container);
+    this.ropes = [];
+    for (let i = 0; i < strands; i++) {
+      const points = Array.from({ length: n }, () => new Point());
+      const rope = new MeshRope({ texture: tex, points, width: widths[i % widths.length] });
+      rope.blendMode = 'add';
+      rope.tint = tints[i % tints.length];
+      this.container.addChild(rope);
+      this.ropes.push({ rope, points });
+    }
+    this.container.visible = false;
+  }
+  set(alpha, path) {
+    this.container.visible = alpha > 0.002;
+    if (!this.container.visible) return;
+    this.container.alpha = alpha;
+    const out = [0, 0];
+    this.ropes.forEach(({ points }, i) => {
+      for (let j = 0; j < points.length; j++) {
+        path(j / (points.length - 1), i, out);
+        points[j].x = out[0]; points[j].y = out[1];
+      }
+    });
+  }
+  // случайная точка на случайной нити: откуда вылетают искры
+  sample(out) {
+    const { points } = this.ropes[(Math.random() * this.ropes.length) | 0];
+    const p = points[(Math.random() * points.length) | 0];
+    out[0] = p.x; out[1] = p.y;
+    return out;
+  }
+}
+
+export class MegaWin extends Container {
+  static WIDTH = W;
+  static HEIGHT = H;
+  static DURATION = 10;
+
+  /**
+   * @param {object} [o]
+   * @param {number}  [o.amount=1358856] итоговая сумма на счётчике
+   * @param {number}  [o.density=1]      множитель частиц: 0.5 — экономно, 1.5 — максимум
+   * @param {boolean} [o.loop=false]     повторять сцену каждые 10 с
+   * @param {boolean} [o.background=true] тёмная подложка; false — сцена поверх твоей игры
+   * @param {string}  [o.fontFamily]     шрифт надписи и цифр; загрузи его заранее (document.fonts.load)
+   */
+  constructor({ amount = 1358856, density = 1, loop = false, background = true, fontFamily = '"Montserrat", "Arial Black", Impact, sans-serif' } = {}) {
+    super();
+    const T = textures();
+    this.amount = amount;
+    this.density = density;
+    this.loop = loop;
+    this._t = 0;
+    this._T = -1;          // время от play(); -1 — сцена не запущена
+    this._acc = {};
+    this._fired = new Set();
+    this._shake = 0;
+    this._shown = '';
+
+    const root = (this._root = new Container());
+    this.addChild(root);
+
+    // подложка
+    this._bg = new Graphics().rect(-40, -40, W + 80, H + 80).fill(0x050307);
+    this._bg.visible = background;
+    this._bgGlow = new Sprite(T.glow); this._bgGlow.anchor.set(0.5); this._bgGlow.position.set(CX, H * 0.45);
+    this._bgGlow.blendMode = 'add'; this._bgGlow.tint = 0x6a3a08; this._bgGlow.scale.set(5.5, 3.6);
+    root.addChild(this._bg, this._bgGlow);
+
+    // лучи за надписью и прожекторы
+    this._rays = new Sprite(T.rays); this._rays.anchor.set(0.5); this._rays.blendMode = 'add'; this._rays.tint = 0xffc25a;
+    this._rays.position.set(CX, H * 0.3); this._rays.alpha = 0;
+    root.addChild(this._rays);
+    this._beams = new Container(); root.addChild(this._beams);
+    this._beamList = [PINK, YELLOW, GREEN, PINK, YELLOW, GREEN].map((tint, i) => {
+      const b = new Sprite(T.beam); b.anchor.set(0.5, 1); b.blendMode = 'add'; b.tint = tint;
+      b.position.set(CX, H * 0.62); b.scale.set(3.2, 2.1); this._beams.addChild(b);
+      return { b, base: -1.25 + i * 0.5, ph: i * 1.7 };
+    });
+
+    // частицы за надписью
+    const D = Math.max(0.3, density);
+    this._fw = new Pool(T.soft, Math.round(2000 * D));
+    this._streaks = new Pool(T.streak, Math.round(1400 * D));
+    this._dust = new Pool(T.soft, 200);
+    root.addChild(this._fw.pc, this._streaks.pc, this._dust.pc);
+    this._gold1 = new Ribbon(root, { strands: 12, tex: T.line, widths: [3, 2, 4, 1.5, 2.5, 2, 3.5, 1.5, 2, 3, 1.5, 2.5], tints: [0xffb648, 0xffd27a, 0xff9f2e, 0xffe2a0, 0xffc062] });
+    this._goldHaze = new Ribbon(root, { strands: 2, tex: T.haze, widths: [42, 28], tints: [0x8a4d0a, 0x6a3a08] });
+    this._gold2 = new Ribbon(root, { strands: 10, tex: T.line, widths: [3, 1.5, 4, 2, 2.5, 1.5, 3, 2, 5, 1.5], tints: [0xffb648, 0xffd27a, 0xffa53a, 0xffe6a8, 0xffc76a] });
+    this._elec = new Ribbon(root, { strands: 6, tex: T.line, widths: [7, 3, 4.5, 7, 3, 4.5], tints: [CYAN, 0x9ff8ff, 0x3aa8ff, ORANGE, 0xffb36b, 0xff5a1a] });
+    this._shell = new Pool(T.soft, Math.round(1300 * D));
+    root.addChild(this._shell.pc);
+    this._core = new Sprite(T.glow); this._core.anchor.set(0.5); this._core.position.set(CX, H * 0.47);
+    this._core.blendMode = 'add'; this._core.tint = 0xffe2a0; root.addChild(this._core);
+
+    // надпись и счётчик
+    const text = (this._text = new Container());
+    root.addChild(text);
+    this._textGlow = new Sprite(T.glow); this._textGlow.anchor.set(0.5); this._textGlow.blendMode = 'add'; this._textGlow.tint = 0xb8700f;
+    text.addChild(this._textGlow);
+    const layout = (word, size) => {
+      const glyphs = [...word].map((ch) => goldGlyph(ch, size, fontFamily));
+      const gap = -size * 0.04;
+      const total = glyphs.reduce((s, g) => s + g.w, 0) + gap * (glyphs.length - 1);
+      let x = -total / 2;
+      return glyphs.map((g) => {
+        const s = new Sprite(g.tex); s.anchor.set(0.5);
+        s.homeX = x + g.w / 2; x += g.w + gap;
+        text.addChild(s);
+        return s;
+      });
+    };
+    this._mega = layout('MEGA', 214);
+    this._win = layout('WIN', 222);
+    this._digits = {};
+    for (const ch of '0123456789,') this._digits[ch] = goldGlyph(ch, 128, fontFamily);
+    this._digitW = Math.max(...[...'0123456789'].map((c) => this._digits[c].w)) * 0.92;
+    this._counter = new Container(); text.addChild(this._counter);
+    this._counterSprites = Array.from({ length: 16 }, () => { const s = new Sprite(Texture.EMPTY); s.anchor.set(0.5); this._counter.addChild(s); return s; });
+
+    // частицы перед надписью
+    this._coins = new Pool(T.coin, Math.round(520 * D), 'normal');
+    this._stars = new Pool(T.star, Math.round(320 * D), 'normal');
+    this._sparks = new Pool(T.soft, Math.round(1800 * D));
+    this._glints = new Pool(T.glint, 80);
+    root.addChild(this._coins.pc, this._stars.pc, this._sparks.pc, this._glints.pc);
+    this._flash = new Sprite(T.glow); this._flash.anchor.set(0.5); this._flash.blendMode = 'add'; this._flash.alpha = 0;
+    this._flare = new Sprite(T.flare); this._flare.anchor.set(0.5); this._flare.blendMode = 'add'; this._flare.alpha = 0;
+    root.addChild(this._flash, this._flare);
+
+    this._beams.visible = false; this._core.alpha = 0;
+    this._pools = [this._fw, this._streaks, this._dust, this._shell, this._coins, this._stars, this._sparks, this._glints];
+    this._tmp = [0, 0];
+    this._hideAll();
+  }
+
+  /** Запустить сцену с начала. */
+  play() {
+    this._T = 0;
+    this._fired.clear();
+    this._acc = {};
+    for (const p of this._pools) for (const it of p.items) it.alive = false;
+  }
+
+  /** Секунды от начала сцены. */
+  get time() { return this._T; }
+
+  /** Сколько частиц сейчас живо. */
+  get particleCount() { return this._pools.reduce((s, p) => s + p.alive, 0); }
+
+  /** Показать задний фон или нет (можно менять на лету). */
+  set background(v) { this._bg.visible = !!v; }
+  get background() { return this._bg.visible; }
+
+  _hideAll() {
+    for (const s of [...this._mega, ...this._win]) s.alpha = 0;
+    this._counter.visible = false;
+  }
+
+  // испустить rate частиц в секунду, вызывая fn для каждой новой
+  _emit(key, rate, dt, pool, fn) {
+    this._acc[key] = (this._acc[key] || 0) + rate * dt * this.density;
+    while (this._acc[key] >= 1) {
+      this._acc[key] -= 1;
+      const it = pool.spawn();
+      if (!it) { this._acc[key] = 0; return; }
+      fn(it);
+    }
+  }
+  _once(key, T, at, fn) { if (T >= at && !this._fired.has(key)) { this._fired.add(key); fn(); } }
+  _burst(n, pool, fn) { for (let i = 0, m = Math.round(n * this.density); i < m; i++) { const it = pool.spawn(); if (!it) return; fn(it, i); } }
+
+  /** Вызывать каждый кадр. dt — секунды (в Pixi 8: ticker.deltaMS / 1000). */
+  update(dt) {
+    dt = Math.min(dt, 1 / 30);
+    this._t += dt;
+    const t = this._t;
+    if (this._T >= 0) this._T += dt;
+    let T = this._T;
+    if (T > MegaWin.DURATION) {
+      if (this.loop) { this.play(); T = 0; } else { T = MegaWin.DURATION; }
+    }
+    const R = (a, b) => a + (b - a) * Math.random();
+    const on = T >= 0;
+
+    // ---- непрерывные слои
+    this._emit('dust', 22, dt, this._dust, (it) => {
+      it.x = R(0, W); it.y = R(0, H); it.vx = R(-12, 12); it.vy = R(-22, -4);
+      it.max = R(2.5, 5); it.s = R(0.04, 0.12); it.tint = mix(GOLD, GOLD_LIGHT, Math.random()); it.ph = R(0, TAU);
+    });
+
+    if (on) {
+      // 0–2,3 с: звёздный взрыв лучей из центра
+      const burstOn = win(T, 0, 2.35, 0.05, 0.5);
+      this._once('burst0', T, 0, () => this._burst(260, this._streaks, (it) => {
+        const a = R(0, TAU), sp = R(500, 1300);
+        it.x = CX + Math.cos(a) * R(4, 60); it.y = H * 0.47 + Math.sin(a) * R(4, 60);
+        it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = 0.9;
+        it.max = R(0.9, 1.6); it.s = R(0.9, 1.6); it.tint = mix(0xff9f2e, GOLD_LIGHT, Math.random()); it.a = R(0.6, 1);
+      }));
+      if (burstOn > 0) {
+        this._emit('rays', 520 * burstOn, dt, this._streaks, (it) => {
+          const a = R(0, TAU), sp = R(320, 1100);
+          it.x = CX + Math.cos(a) * R(4, 30); it.y = H * 0.47 + Math.sin(a) * R(4, 30);
+          it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = 0.4;
+          it.max = R(0.5, 1.15); it.s = R(0.6, 1.4); it.tint = mix(0xff9f2e, GOLD_LIGHT, Math.random()); it.a = R(0.5, 1);
+        });
+        this._emit('raydots', 150 * burstOn, dt, this._sparks, (it) => {
+          const a = R(0, TAU), sp = R(80, 420);
+          it.x = CX; it.y = H * 0.47; it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = 0.6;
+          it.max = R(0.8, 1.8); it.s = R(0.1, 0.26); it.s1 = it.s; it.tint = GOLD_LIGHT; it.tw = 1;
+        });
+      }
+      this._core.alpha = win(T, 0, 2.0, 0.05, 0.3) * (0.8 + 0.2 * Math.sin(t * 20));
+      this._core.scale.set((0.35 + 0.15 * Math.sin(t * 9)) * (1 + 2.5 * win(T, 1.7, 2.1, 0.05, 0.3)));
+
+      // 0,7–2,7 с: золотые волны нитей поперёк экрана
+      const g1 = 0.75 * win(T, 0.65, 2.3, 0.5, 0.45);
+      const grow = easeOutCubic((T - 0.65) / 0.9);
+      this._gold1.set(g1, (u, i, out) => {
+        const edge = Math.min(1, Math.abs(u - 0.5) * 2 / Math.max(0.05, 1 - grow * 0.95));   // волна выходит от краёв к центру
+        const r1 = Math.sin(i * 12.9898) * 0.5 + 0.5, r2 = Math.sin(i * 78.233) * 0.5 + 0.5;   // свои параметры у каждой нити
+        const amp = (55 + 50 * r1) * (0.35 + 0.65 * grow) * (0.55 + 0.45 * edge);
+        out[0] = -80 + u * (W + 160);
+        out[1] = H * 0.5 + Math.sin(u * TAU * (1.5 + 0.5 * r2) + t * (2.0 + r1) + i * 0.55) * amp
+          + Math.sin(u * TAU * (3.5 + 2 * r1) - t * 3.1 + i) * (10 + 14 * r2) + (r2 - 0.5) * 30;
+      });
+
+      // 1,2 с: «M» в центре; 1,6–1,9 с: MEGA влетает из камеры
+      const megaY = H * 0.47 - 0.11 * H * easeInOut((T - 2.65) / 0.35) - 0.16 * H * easeInOut((T - 5.4) / 0.5);
+      const textScale = 1 - 0.1 * easeInOut((T - 5.4) / 0.5);
+      this._mega.forEach((s, i) => {
+        if (i === 0 && T >= 1.15 && T < 1.62) {
+          const u = (T - 1.15) / 0.47;
+          s.alpha = Math.min(1, u * 4); s.scale.set(0.6 + 0.15 * u); s.x = CX; s.y = H * 0.47;
+          return;
+        }
+        const t0 = 1.62 + i * 0.045, u = (T - t0) / 0.24;
+        if (u < 0) { if (!(i === 0 && T >= 1.15)) s.alpha = 0; return; }
+        const k = easeOutCubic(u), first = i === 0;          // «M» уже в кадре: растёт из центра, остальные летят из камеры
+        s.alpha = first ? 1 : Math.min(1, u * 3);
+        s.scale.set(lerp(first ? 0.75 : 3.2, 1, k) * textScale);
+        s.x = CX + s.homeX * lerp(first ? 0 : 2.4, 1, k) * textScale;
+        s.y = megaY + (1 - k) * 40;
+      });
+      this._once('megaHit', T, 1.86, () => this._megaHit());
+
+      // 2,75 с: WIN поднимается снизу
+      const winY = H * 0.63 - 0.2 * H * easeInOut((T - 5.4) / 0.5);
+      this._win.forEach((s, i) => {
+        const t0 = 2.72 + i * 0.04, u = (T - t0) / 0.3;
+        if (u < 0) { s.alpha = 0; return; }
+        const k = easeOutBack(u);
+        s.alpha = Math.min(1, u * 3);
+        s.scale.set(lerp(2.0, 1, easeOutCubic(u)) * textScale);
+        s.x = CX + s.homeX * textScale;
+        s.y = lerp(H + 160, winY, k);
+      });
+      this._once('winHit', T, 3.0, () => { this._shake = 0.7; this._burst(140, this._sparks, (it) => this._spark(it, CX + R(-200, 200), H * 0.62 + R(-30, 30), R(0, TAU), R(150, 520))); });
+      this._textGlow.position.set(CX, (megaY + winY) / 2);
+      this._textGlow.scale.set(4.2 * textScale, 2.3 * textScale);
+      this._textGlow.alpha = T > 1.7 ? 0.13 + 0.04 * Math.sin(t * 3) : 0;
+
+      // 2,9–5,1 с: синие и оранжевые электрические ленты; с 4 с закручиваются вокруг надписи
+      const el = win(T, 2.85, 4.95, 0.25, 0.3);
+      const loopK = easeInOut((T - 3.7) / 0.5);
+      const cy = H * 0.5;
+      this._elec.set(el, (u, i, out) => {
+        const hot = i >= 3, j = i % 3, side = hot ? Math.PI : 0;
+        const wx = -60 + u * (W + 120);
+        const wy = cy + Math.sin(u * TAU * 2.1 + t * (hot ? -4.2 : 4.6) + j * 0.8 + side) * (38 + j * 10) + (Math.random() - 0.5) * 7;
+        const a = (hot ? -0.3 : 0.7) * Math.PI + u * TAU * (0.45 + 0.08 * j) + t * (1.4 + 0.35 * j) + j * 0.9;   // незамкнутая дуга: синяя сверху слева, оранжевая снизу справа
+        const wob = Math.sin(a * 2 + t * 3.2 + j) * 34 + Math.sin(a * 5 - t * 6 + j * 2) * 10;
+        const ex = CX + Math.cos(a) * (370 + j * 34 + wob);
+        const ey = cy + Math.sin(a) * (185 + j * 22 + wob * 0.6) + (Math.random() - 0.5) * 6;
+        out[0] = lerp(wx, ex, loopK); out[1] = lerp(wy, ey, loopK);
+      });
+      if (el > 0) this._emit('elecSparks', 70 * el, dt, this._sparks, (it) => {
+        this._elec.sample(this._tmp);
+        this._spark(it, this._tmp[0], this._tmp[1], R(0, TAU), R(20, 90));
+        it.tint = Math.random() < 0.5 ? 0x9ff8ff : 0xffb36b; it.max = R(0.3, 0.6);
+      });
+
+      // монеты и звёзды
+      if (T > 2.0 && T < 4.9) {
+        this._emit('coinRain1', 9, dt, this._coins, (it) => this._coin(it, R(40, W - 40), -40, R(-40, 40), R(80, 200), 320, R(0.22, 0.42)));
+        this._emit('starFall', 16, dt, this._stars, (it) => this._star(it, R(0, W), -20, R(-30, 30), R(60, 160)));
+      }
+
+      // 4,8–6,6 с: фейерверки и прожекторы
+      const fwPlan = [[4.65, 0.22, 0.22, PINK], [4.8, 0.74, 0.2, GREEN], [4.98, 0.3, 0.5, GREEN], [5.15, 0.84, 0.44, PINK], [5.4, 0.12, 0.4, GREEN], [5.65, 0.62, 0.14, PINK], [5.9, 0.4, 0.26, VIOLET], [6.1, 0.88, 0.2, GREEN]];
+      fwPlan.forEach(([at, fx, fy, col], n) => this._once('fw' + n, T, at, () => this._firework(fx * W, fy * H, col)));
+      const bm = win(T, 4.6, 6.6, 0.3, 0.6);
+      this._beams.visible = bm > 0;
+      for (const { b, base, ph } of this._beamList) {
+        b.rotation = base + Math.sin(t * 0.9 + ph) * 0.35;
+        b.alpha = bm * (0.32 + 0.14 * Math.sin(t * 2.3 + ph));
+      }
+
+      // 4,9–5,6 с: фонтан монет из-под надписи
+      if (T > 4.75 && T < 5.4) this._emit('fountain', 70, dt, this._coins, (it) => this._coin(it, CX + R(-80, 80), H * 0.76, R(-560, 560), R(-900, -560), 1500, R(0.34, 0.7)));
+
+      // 5,5–10 с: золотые нити внизу, счётчик, дождь монет
+      const g2 = 0.62 * win(T, 5.45, 10.5, 0.6, 0.5);
+      this._gold2.set(g2, (u, i, out) => {
+        const r1 = Math.sin(i * 12.9898) * 0.5 + 0.5, r2 = Math.sin(i * 78.233) * 0.5 + 0.5;
+        out[0] = -100 + u * (W + 200);
+        out[1] = H * 0.72 - (u - 0.5) * 160 + Math.sin(u * TAU * (0.9 + 0.5 * r1) + t * (1.0 + 0.6 * r2) + i * 0.7) * (60 + 60 * r2)
+          + Math.sin(u * TAU * (2.4 + 1.6 * r2) - t * 1.8 + i * 1.3) * (14 + 24 * r1) + Math.sin(u * TAU * 7.0 + t * 3.0 + i) * 4;
+      });
+      this._goldHaze.set(g2 * 0.6, (u, i, out) => {
+        out[0] = -100 + u * (W + 200);
+        out[1] = H * 0.7 - (u - 0.5) * 140 + Math.sin(u * TAU * 1.15 + t * 1.25 + i * 0.5) * 84 + Math.sin(u * TAU * 2.9 - t * 1.8) * 22;
+      });
+      if (g2 > 0) this._emit('goldSparks', 260 * g2, dt, this._sparks, (it) => {
+        this._gold2.sample(this._tmp);
+        this._spark(it, this._tmp[0], this._tmp[1], R(0, TAU), R(10, 70));
+        it.g = 40; it.max = R(0.6, 1.4); it.s = R(0.05, 0.13);
+      });
+      if (T > 5.6 && T < 9.7) this._emit('coinRain2', 42, dt, this._coins, (it) => {
+        const depth = Math.random();
+        this._coin(it, R(-20, W + 20), -60, R(-60, 60), lerp(160, 460, depth), lerp(300, 650, depth), lerp(0.2, 0.72, depth));
+      });
+      if (T > 6.0 && T < 9.7) this._emit('glints', 7, dt, this._glints, (it) => {
+        it.x = CX + R(-420, 420); it.y = R(H * 0.12, H * 0.85); it.vx = 0; it.vy = R(-10, 10);
+        it.max = R(0.35, 0.7); it.s = R(0.35, 0.8); it.tint = Math.random() < 0.3 ? 0xbfe8ff : 0xffffff; it.vr = R(-1, 1);
+      });
+
+      // счётчик
+      this._counter.visible = T > 5.7;
+      if (this._counter.visible) {
+        const u = clamp01((T - 5.75) / 3.6);
+        const value = Math.round(this.amount * (1 - Math.pow(1 - u, 6)));
+        const pop = easeOutBack((T - 5.7) / 0.35);
+        this._layoutCounter(value.toLocaleString('en-US'), H * 0.645, pop * (1 + 0.06 * win(T, 9.35, 9.8, 0.05, 0.4)));
+      }
+
+      // 6,8 с: лучи за надписью; 7,45 с: вспышка
+      this._rays.alpha = win(T, 6.8, 10.5, 0.6, 0.5) * (0.28 + 0.06 * Math.sin(t * 1.7));
+      this._rays.rotation = t * 0.12;
+      this._rays.scale.set(5.2);
+      const fl = win(T, 7.42, 8.0, 0.06, 0.5);
+      this._flash.alpha = fl; this._flash.tint = 0xfff1c8;
+      this._flash.position.set(W * 0.62, H * 0.66); this._flash.scale.set(1 + 4.2 * fl);
+      this._flare.alpha = fl; this._flare.position.copyFrom(this._flash.position); this._flare.scale.set(3.4 * fl + 0.6, 2.0);
+      this._once('flash', T, 7.45, () => { this._shake = 0.4; this._burst(120, this._sparks, (it) => this._spark(it, W * 0.62, H * 0.66, R(0, TAU), R(200, 700))); });
+
+      // 8,75–9,45 с: неоновые полосы скорости
+      const neon = win(T, 8.72, 9.3, 0.08, 0.2);
+      if (neon > 0) this._emit('neon', 520 * neon, dt, this._streaks, (it) => {
+        const a = R(0, TAU), sp = R(1500, 2600);
+        it.x = CX + Math.cos(a) * R(30, 120); it.y = H * 0.45 + Math.sin(a) * R(20, 80);
+        it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp;
+        it.max = R(0.3, 0.5); it.s = R(1.6, 2.8); it.a = 1; it.thick = 0.9;
+        it.tint = [PINK, CYAN, YELLOW, VIOLET, 0xff8a3a][(Math.random() * 5) | 0];
+      });
+
+      // 9,1–10 с: два искровых фонтана под счётчиком
+      if (T > 9.1 && T < 9.95) for (const fx of [0.37, 0.63]) this._emit('fount' + fx, 240, dt, this._sparks, (it) => {
+        it.x = fx * W + R(-14, 14); it.y = H * 0.92; it.vx = R(-90, 90); it.vy = R(-700, -420); it.g = 720;
+        it.max = R(0.7, 1.1); it.s = R(0.13, 0.24); it.s1 = it.s * 0.5; it.tint = mix(GOLD, GOLD_LIGHT, Math.random()); it.tw = 1;
+      });
+    }
+
+    // ---- шаг частиц
+    this._dust.step(dt, (it, k, p) => {
+      p.scaleX = p.scaleY = it.s; p.tint = it.tint;
+      p.alpha = Math.sin(k * Math.PI) * (0.4 + 0.6 * Math.abs(Math.sin(t * 3 + it.ph)));
+    });
+    this._streaks.step(dt, (it, k, p) => {
+      const sp = Math.hypot(it.vx, it.vy);
+      p.rotation = Math.atan2(it.vy, it.vx);
+      p.scaleX = (0.5 + sp / 300) * it.s * (0.5 + k * 1.6); p.scaleY = (it.thick || 0.45) * it.s;
+      p.tint = it.tint; p.alpha = it.a * Math.min(1, k * 8) * (1 - k);
+    });
+    const dots = (it, k, p) => {
+      const s = lerp(it.s, it.s1 ?? it.s, k);
+      p.scaleX = p.scaleY = s; p.tint = it.tint;
+      p.alpha = Math.min(1, k * 10) * (1 - k) * (it.tw ? 0.55 + 0.45 * Math.sin(it.life * 40 + it.x) : 1);
+    };
+    this._sparks.step(dt, dots);
+    this._shell.step(dt, dots);
+    this._fw.step(dt, (it, k, p) => {
+      p.scaleX = p.scaleY = it.s * (1 - k * 0.5);
+      p.tint = mix(0xffffff, it.tint, Math.min(1, k * 5));
+      p.alpha = Math.min(1, (1 - k) * 1.4) * (0.65 + 0.35 * Math.sin(it.life * 30 + it.ph));
+    });
+    this._coins.step(dt, (it, k, p) => {
+      it.ph += it.vr * dt;
+      const c = Math.cos(it.ph), face = Math.max(0.12, Math.abs(c));
+      p.scaleX = it.s * face; p.scaleY = it.s; p.rotation = it.r;
+      const v = Math.round(255 * (0.5 + 0.5 * face));
+      p.tint = (v << 16) | (v << 8) | v;
+      p.alpha = Math.min(1, k * 12) * (k > 0.85 ? (1 - k) / 0.15 : 1);
+    });
+    this._stars.step(dt, (it, k, p) => {
+      p.scaleX = it.s * Math.abs(Math.cos(it.life * 5 + it.ph)) + 0.05; p.scaleY = it.s; p.rotation = it.r;
+      p.alpha = Math.min(1, k * 10) * (k > 0.8 ? (1 - k) / 0.2 : 1);
+    });
+    this._glints.step(dt, (it, k, p) => {
+      const s = Math.sin(k * Math.PI);
+      p.scaleX = p.scaleY = it.s * s; p.rotation = it.r; p.tint = it.tint; p.alpha = s;
+    });
+
+    // тряска на ударах
+    this._shake = Math.max(0, this._shake - dt * 2.5);
+    const sh = this._shake * this._shake * 16;
+    this._root.position.set((Math.random() - 0.5) * 2 * sh, (Math.random() - 0.5) * 2 * sh);
+  }
+
+  // ---- кирпичики
+  _spark(it, x, y, a, sp) {
+    it.x = x; it.y = y; it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = 1.4; it.g = 60;
+    it.max = 0.4 + Math.random() * 0.8; it.s = 0.06 + Math.random() * 0.12; it.s1 = it.s * 0.4;
+    it.tint = mix(GOLD, GOLD_LIGHT, Math.random()); it.tw = Math.random() < 0.5 ? 1 : 0;
+  }
+  _coin(it, x, y, vx, vy, g, s) {
+    it.x = x; it.y = y; it.vx = vx; it.vy = vy; it.g = g; it.drag = 0.05;
+    it.s = s; it.ph = Math.random() * TAU; it.vr = (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 8);
+    it.r = (Math.random() - 0.5) * 0.8; it.max = 3.5;
+  }
+  _star(it, x, y, vx, vy) {
+    it.x = x; it.y = y; it.vx = vx; it.vy = vy; it.g = 30; it.drag = 0.2;
+    it.s = 0.18 + Math.random() * 0.35; it.ph = Math.random() * TAU; it.vr = (Math.random() - 0.5) * 6; it.max = 4;
+  }
+  _megaHit() {
+    const R = (a, b) => a + (b - a) * Math.random();
+    this._shake = 1;
+    // кольцо золотой пыли, разлетающееся сферой
+    this._burst(1100, this._shell, (it) => {
+      const a = R(0, TAU), shell = Math.random() < 0.75, sp = shell ? R(760, 860) : R(160, 760);
+      it.x = CX + Math.cos(a) * 40; it.y = H * 0.47 + Math.sin(a) * 40;
+      it.vx = Math.cos(a) * sp * 1.05; it.vy = Math.sin(a) * sp; it.drag = 2.2;
+      it.max = R(1.3, 2.3); it.s = R(0.12, 0.3); it.s1 = it.s * 0.5; it.tint = mix(GOLD, GOLD_LIGHT, Math.random()); it.tw = 1;
+    });
+    this._burst(90, this._stars, (it) => { const a = R(0, TAU), sp = R(200, 700); this._star(it, CX, H * 0.47, Math.cos(a) * sp, Math.sin(a) * sp); it.drag = 1.2; });
+    this._burst(26, this._coins, (it) => { const a = R(0, TAU), sp = R(450, 950); this._coin(it, CX, H * 0.47, Math.cos(a) * sp, Math.sin(a) * sp, 380, R(0.25, 0.5)); it.drag = 0.8; });
+    this._burst(220, this._sparks, (it) => this._spark(it, CX + R(-60, 60), H * 0.47 + R(-30, 30), R(0, TAU), R(200, 900)));
+  }
+  _firework(x, y, col) {
+    const R = (a, b) => a + (b - a) * Math.random();
+    this._burst(380, this._fw, (it) => {
+      const a = R(0, TAU), sp = R(120, 520) * (Math.random() < 0.65 ? 1 : 0.55);
+      it.x = x; it.y = y; it.vx = Math.cos(a) * sp; it.vy = Math.sin(a) * sp; it.drag = 1.4; it.g = 80;
+      it.max = R(1.3, 2.1); it.s = R(0.16, 0.28); it.tint = col; it.ph = R(0, TAU);
+    });
+    this._burst(1, this._fw, (it) => { it.x = x; it.y = y; it.vx = it.vy = 0; it.max = 0.45; it.s = 2.2; it.tint = 0xffffff; it.ph = 0; });
+  }
+  _layoutCounter(str, y, scale) {
+    if (str !== this._shown) {
+      this._shown = str;
+      let x = 0;
+      const xs = [];
+      for (const ch of str) { const w = ch === ',' ? this._digits[','].w * 0.9 : this._digitW; xs.push(x + w / 2); x += w; }
+      this._counterSprites.forEach((s, i) => {
+        if (i < str.length) { s.visible = true; s.texture = this._digits[str[i]].tex; s.x = xs[i] - x / 2; s.y = 0; }
+        else s.visible = false;
+      });
+    }
+    this._counter.position.set(CX, y);
+    this._counter.scale.set(scale);
+  }
+
+  destroy(options) {
+    // общие текстуры не уничтожаем: их используют другие экземпляры; буквы и цифры — свои
+    const own = [...this._mega, ...this._win].map((s) => s.texture).concat(Object.values(this._digits).map((d) => d.tex));
+    super.destroy({ children: true, texture: false, textureSource: false, ...(typeof options === 'object' ? options : {}) });
+    for (const tex of own) tex.destroy(true);
+  }
+}
+
+
+// ----- this page's demo
+import { Application } from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
+
+const $ = (id) => document.getElementById(id);
+const fmtMB = (b) => (b / 1048576).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' МБ';
+
+// copy buttons
+for (const b of document.querySelectorAll('.copy')) {
+  b.addEventListener('click', () => {
+    const pre = $(b.dataset.for);
+    const done = () => { b.textContent = 'Скопировано'; setTimeout(() => { b.textContent = 'Скопировать'; }, 1600); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'Выделено, скопируй вручную'; };
+    try { navigator.clipboard.writeText(pre.textContent).then(done, fallback); } catch (e) { fallback(); }
+  });
+}
+
+// the stage renders at the size it is shown (capped at 1280 px wide), the scene is scaled into it
+const stage = $('stage');
+const app = new Application();
+await app.init({ width: 1280, height: 720, backgroundAlpha: 0, antialias: false, preference: 'webgl', resolution: 1, autoStart: false });
+stage.prepend(app.canvas);
+try { await document.fonts.load('900 170px "Montserrat"'); } catch (e) {}
+
+const fx = new MegaWin({ amount: 1358856, density: 1, loop: true });
+app.stage.addChild(fx);
+function fit() {
+  const w = Math.min(1280, Math.round(stage.clientWidth * Math.min(window.devicePixelRatio || 1, 2)));
+  const h = Math.round(w * 9 / 16);
+  app.renderer.resize(w, h);
+  fx.scale.set(w / MegaWin.WIDTH);
+}
+fit();
+addEventListener('resize', fit);
+
+// texture memory: shared particle textures + this scene's letters and digits
+let vram = 0;
+for (const tex of new Set([...Object.values(fx._digits).map((d) => d.tex), ...fx._mega.map((s) => s.texture), ...fx._win.map((s) => s.texture)])) vram += tex.source.pixelWidth * tex.source.pixelHeight * 4;
+vram += (64 * 64 * 2 + 128 * 12 + 128 * 128 + 64 * 64 + 256 * 256 * 2 + 64 * 512 + 32 * 16 + 32 * 32 + 512 * 24) * 4;
+$('vram').textContent = fmtMB(vram);
+
+// video and scene start together; when the video loops, the scene restarts with it
+const vid = $('vid');
+let lastV = 0, started = false;
+const restart = () => { fx.play(); try { vid.currentTime = 0; vid.play().catch(() => {}); } catch (e) {} };
+vid.addEventListener('playing', () => { if (!started) { started = true; fx.play(); } });
+setTimeout(() => { if (vid.paused) { $('vid-play').hidden = false; if (!started) { started = true; fx.play(); } } }, 1500);
+$('vid-play').addEventListener('click', () => { vid.play().then(() => { $('vid-play').hidden = true; fx.play(); vid.currentTime = 0; }).catch(() => {}); });
+
+const work = []; let last = 0, fpsT = 0, fpsN = 0, paused = false;
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (paused) { last = now; return; }
+  const dt = last ? (now - last) / 1000 : 1 / 60; last = now;
+  if (!vid.paused && vid.currentTime + 0.5 < lastV) fx.play();     // video looped
+  lastV = vid.currentTime;
+  const t0 = performance.now();
+  fx.update(dt);
+  app.renderer.render(app.stage);
+  work.push(performance.now() - t0); if (work.length > 120) work.shift();
+  fpsN++;
+  if (now - fpsT > 500) {
+    const fps = fpsN * 1000 / (now - fpsT); fpsT = now; fpsN = 0;
+    const avg = work.reduce((s, v) => s + v, 0) / work.length;
+    $('hud').textContent = `${fps.toFixed(0)} fps · кадр ${avg.toFixed(1).replace('.', ',')} мс · частиц ${fx.particleCount} · ${Math.max(0, fx.time).toFixed(1).replace('.', ',')} с`;
+  }
+}
+requestAnimationFrame(frame);
+
+$('again').addEventListener('click', restart);
+stage.addEventListener('click', restart);
+stage.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); restart(); } });
+$('density').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  fx.density = +b.dataset.v;
+  for (const x of $('density').children) x.setAttribute('aria-pressed', String(x === b));
+});
+
+// test hooks: deterministic still at a moment of the scene; CPU cost of the simulation
+window.__mw = {
+  resume() { paused = false; },
+  at(t) { paused = true; fx.play(); for (let k = 0, n = Math.round(t * 60); k < n; k++) fx.update(1 / 60); app.renderer.render(app.stage); return fx.particleCount; },
+  bench() { let s = 0, peak = 0, n = 600; fx.play(); for (let k = 0; k < n; k++) { const a = performance.now(); fx.update(1 / 60); s += performance.now() - a; peak = Math.max(peak, fx.particleCount); } return { simMs: s / n, peak }; },
+};
+</script>
+</body>
+</html>

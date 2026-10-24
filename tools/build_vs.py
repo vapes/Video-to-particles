@@ -25,12 +25,12 @@ page = (tpl.replace('__USAGE_HTML__', hl(usage.rstrip('\n')))
            .replace('__MODULE_LINES__', str(mod.count('\n')))
            .replace('__MODULE_KB__', f"{nb / 1024:.0f} КБ, в gzip {gz / 1024:.0f} КБ".replace('.', ','))
            .replace('__MODULE_MB__', f"{nb / 1048576:.2f} МБ".replace('.', ',')))
-assert '__' not in re.sub(r'__vs|__proto__', '', page.split('<script type="module">')[0]), 'placeholder left'
+assert '__' not in re.sub(r'__vs|__proto__|__MEGA_HREF__', '', page.split('<script type="module">')[0]), 'placeholder left'
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent))
 from htmldoc import to_document
-open(f'{D}/index.html', 'w').write(to_document(page))
+open(f'{D}/index.html', 'w').write(to_document(page.replace('__MEGA_HREF__', '../mega-win/')))
 # GitHub Pages home page: the same demo at the repo root, assets stay in fire-coin-win/
-home = page
+home = page.replace('__MEGA_HREF__', 'mega-win/')
 for old, new in (('src="clip.mp4"', 'src="fire-coin-win/clip.mp4"'), ("fetch('coin.avif')", "fetch('fire-coin-win/coin.avif')")):
     assert home.count(old) == 1, old
     home = home.replace(old, new)
