@@ -1,6 +1,8 @@
 // fire-coin-win.js — огненный выигрыш вокруг круглого символа. Pixi 8.
-// Символ — одна статичная текстура, он стоит на месте. Огненное кольцо, взрыв искр,
-// ударные волны, горящий край, блик и лучи считаются частицами каждый кадр.
+// Символ — одна статичная картинка. По умолчанию он отыгрывает удар и двойной поворот
+// ребром (motion: 'spin'); 'punch' — только удар и покачивание, 'none' — стоит на месте.
+// Огненное кольцо, взрыв искр, ударные волны, горящий край, блик и лучи считаются
+// частицами каждый кадр.
 // Текстуры частиц рисуются кодом один раз и общие для всех экземпляров.
 import { Container, Sprite, Texture, ParticleContainer, Particle, Graphics } from 'pixi.js';
 
@@ -108,11 +110,14 @@ export class FireCoinWin extends Container {
    * @param {boolean} [o.loop=false]   повторять выигрыш каждые 4,2 с
    * @param {boolean} [o.embers=true]  угольки, поднимающиеся вокруг символа
    * @param {number}  [o.seed=7]       зерно случайности: одинаковый выигрыш при каждом play()
+   * @param {'spin'|'punch'|'none'} [o.motion='spin'] движение символа: удар и поворот ребром,
+   *                                   только удар и покачивание, или неподвижно (можно менять на лету)
    */
-  constructor({ coin, diameter = 400, density = 1, loop = false, embers = true, seed = 7 } = {}) {
+  constructor({ coin, diameter = 400, density = 1, loop = false, embers = true, seed = 7, motion = 'spin' } = {}) {
     super();
     const T = textures();
     this.density = density;
+    this.motion = motion;
     this.loop = loop;
     this.R = diameter / 2;
     this._seed0 = seed;
@@ -124,7 +129,7 @@ export class FireCoinWin extends Container {
     this._shake = 0;
     this._embersOn = embers;
 
-    // огонь за символом и перед ним в двух слоях; трясутся только они, символ неподвижен
+    // огонь за символом и перед ним в двух слоях, символ между ними
     const back = new Container();
     const front = new Container();
     this._layers = [back, front];
@@ -135,14 +140,17 @@ export class FireCoinWin extends Container {
     this._back = makePool(T.flame, 2400);
     back.addChild(this._rays, this._glow, this._embers.pc, this._back.pc);
 
-    const wrap = new Container();
+    const wrap = (this._wrap = new Container());
+    this._edge = new Sprite(coin); this._edge.anchor.set(0.5); this._edge.tint = 0x7a4a0e; this._edge.visible = false;   // толщина при повороте
     this._coin = new Sprite(coin); this._coin.anchor.set(0.5);
-    this._coin.scale.set(diameter / coin.width);
+    this._coinScale = diameter / coin.width;
+    this._coin.scale.set(this._coinScale);
+    this._edge.scale.set(this._coinScale);
     this._mask = new Graphics().circle(0, 0, this.R * 0.965).fill(0xffffff);
     this._band = new Sprite(T.band); this._band.anchor.set(0.5); this._band.blendMode = 'add';
     this._band.rotation = 0.42; this._band.height = diameter * 1.6; this._band.width = diameter * 0.3;
     this._band.mask = this._mask; this._band.visible = false;
-    wrap.addChild(this._coin, this._mask, this._band);
+    wrap.addChild(this._edge, this._coin, this._mask, this._band);
 
     this._front = makePool(T.flame, 2400);
     this._burst = makePool(T.flame, 1400);
@@ -209,7 +217,7 @@ export class FireCoinWin extends Container {
       const it = this._spawn(this._back);
       if (!it) continue;
       const a = this._r(0, Math.PI * 2), r = this.R * this._r(0.97, 1.06);
-      it.x = Math.cos(a) * r; it.y = Math.sin(a) * r;
+      it.x = this._wrap.x + Math.cos(a) * r; it.y = this._wrap.y + Math.sin(a) * r;
       it.vx = Math.cos(a) * this._r(30, 90); it.vy = Math.sin(a) * this._r(30, 90) - this._r(70, 170);
       it.max = this._r(0.4, 0.8); it.s = this._r(0.7, 1.3) * this.R / 200; it.r = 0; it.ph = this._r(0, 6.28);
     }
@@ -307,10 +315,36 @@ export class FireCoinWin extends Container {
       p.tint = EMBER(k); p.alpha = (0.35 + 0.65 * Math.abs(Math.sin(t * 7 + it.ph * 3))) * Math.min(1, k * 8) * (1 - k);
     });
 
+    // символ
+    const m = this.motion;
+    let sc = 1, rot = 0, faceX = 1, edgeOff = 0, bob = 0;
+    if (m !== 'none') {
+      // замах перед ударом, пружинящий отскок и лёгкое покачивание
+      sc = 1 + Math.sin(t * 3) * 0.012;
+      bob = Math.sin(t * 2) * 6 * (R / 200);
+      if (T < 0.18) { const u = easeOutCubic(T / 0.18); sc *= 1 - 0.1 * u; rot = -0.05 * u; }
+      else if (T < 0.9) { const u = (T - 0.18) / 0.72; sc *= 1 + 0.22 * Math.exp(-5 * u) * Math.cos(11 * u); rot = -0.05 * (1 - u); }
+    }
+    if (m === 'spin' && T > 0.95 && T < 1.75) {
+      // двойной поворот ребром: ширина по косинусу, тёмная копия сзади даёт толщину
+      const th = easeInOut((T - 0.95) / 0.8) * Math.PI * 4;
+      faceX = Math.max(0.035, Math.abs(Math.cos(th)));
+      edgeOff = Math.sin(th) * 16 * (R / 200) * Math.sign(Math.cos(th) || 1);
+    }
+    const cs = this._coinScale * sc;
+    this._wrap.rotation = rot;
+    this._coin.scale.set(cs * faceX, cs);
+    this._edge.scale.set(cs * faceX, cs);
+    this._edge.x = edgeOff;
+    this._edge.visible = faceX < 0.999;
+    const v = Math.round(255 * (0.6 + 0.4 * faceX));
+    this._coin.tint = faceX < 0.999 ? (v << 16) | (v << 8) | Math.round(v * 0.96) : 0xffffff;
+    this._mask.scale.set(sc * faceX, sc);
+
     // блик
     if (T > 1.85 && T < 2.5) {
       const u = (T - 1.85) / 0.65;
-      this._band.visible = true; this._band.x = (-1.1 + 2.2 * easeInOut(u)) * R; this._band.alpha = Math.sin(u * Math.PI);
+      this._band.visible = true; this._band.x = (-1.1 + 2.2 * easeInOut(u)) * R * faceX; this._band.alpha = Math.sin(u * Math.PI);
     } else this._band.visible = false;
 
     // лучи, свечение, ударные волны, вспышка
@@ -329,11 +363,13 @@ export class FireCoinWin extends Container {
     });
     this._flash.alpha = T >= 0.18 && T < 0.5 ? (1 - (T - 0.18) / 0.32) * 0.55 : 0;
 
-    // тряска огня на ударе: символ и позиция самого эффекта не двигаются
+    // тряска на ударе; при motion: 'none' трясётся только огонь, символ стоит
     this._shake = Math.max(0, this._shake - dt * 2.8);
     const sh = this._shake * this._shake * 14 * (R / 200);
     const sx = this._r(-sh, sh), sy = this._r(-sh, sh);
     for (const l of this._layers) l.position.set(sx, sy);
+    if (m === 'none') this._wrap.position.set(0, 0);
+    else this._wrap.position.set(sx, bob + sy);
   }
 
   destroy(options) {

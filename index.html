@@ -127,6 +127,11 @@ pre.tall { max-height: 460px; overflow: auto; }
     <div class="facts"><span>Монета <b class="good">0,03 МБ</b></span><span>Модуль <b class="good">0,02 МБ</b></span><span>Длина <b>бесконечно</b></span><span>Видеопамять <b id="vram">…</b></span></div>
     <div class="controls">
       <button type="button" class="btn" id="again">Ещё раз</button>
+      <div class="seg" id="motion" aria-label="Движение монеты">
+        <button type="button" id="m-spin" data-m="spin" aria-pressed="true">Вращается</button>
+        <button type="button" id="m-punch" data-m="punch" aria-pressed="false">Удар</button>
+        <button type="button" id="m-none" data-m="none" aria-pressed="false">Стоит</button>
+      </div>
       <div class="seg" id="density" aria-label="Количество частиц">
         <button type="button" id="d-low" data-v="0.5" aria-pressed="false">Экономно</button>
         <button type="button" id="d-mid" data-v="1" aria-pressed="true">Норма</button>
@@ -165,10 +170,12 @@ fx.play();
 <span class="c">// fx.destroy();</span></pre>
     </div>
     <div class="code">
-      <div class="code-head"><div><div class="name">fire-coin-win.js</div><div class="meta">343 строк · 17 КБ, в gzip 6 КБ</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
+      <div class="code-head"><div><div class="name">fire-coin-win.js</div><div class="meta">379 строк · 19 КБ, в gzip 6 КБ</div></div><button type="button" class="copy" data-for="code-module">Скопировать</button></div>
       <pre id="code-module" class="tall"><span class="c">// fire-coin-win.js — огненный выигрыш вокруг круглого символа. Pixi 8.</span>
-<span class="c">// Символ — одна статичная текстура, он стоит на месте. Огненное кольцо, взрыв искр,</span>
-<span class="c">// ударные волны, горящий край, блик и лучи считаются частицами каждый кадр.</span>
+<span class="c">// Символ — одна статичная картинка. По умолчанию он отыгрывает удар и двойной поворот</span>
+<span class="c">// ребром (motion: 'spin'); 'punch' — только удар и покачивание, 'none' — стоит на месте.</span>
+<span class="c">// Огненное кольцо, взрыв искр, ударные волны, горящий край, блик и лучи считаются</span>
+<span class="c">// частицами каждый кадр.</span>
 <span class="c">// Текстуры частиц рисуются кодом один раз и общие для всех экземпляров.</span>
 <span class="k">import</span> { Container, Sprite, Texture, ParticleContainer, Particle, Graphics } <span class="k">from</span> <span class="s">'pixi.js'</span>;
 
@@ -276,11 +283,14 @@ fx.play();
    * @param {boolean} [o.loop=false]   повторять выигрыш каждые 4,2 с
    * @param {boolean} [o.embers=true]  угольки, поднимающиеся вокруг символа
    * @param {number}  [o.seed=7]       зерно случайности: одинаковый выигрыш при каждом play()
+   * @param {'spin'|'punch'|'none'} [o.motion='spin'] движение символа: удар и поворот ребром,
+   *                                   только удар и покачивание, или неподвижно (можно менять на лету)
    */</span>
-  constructor({ coin, diameter = <span class="n">400</span>, density = <span class="n">1</span>, loop = <span class="k">false</span>, embers = <span class="k">true</span>, seed = <span class="n">7</span> } = {}) {
+  constructor({ coin, diameter = <span class="n">400</span>, density = <span class="n">1</span>, loop = <span class="k">false</span>, embers = <span class="k">true</span>, seed = <span class="n">7</span>, motion = <span class="s">'spin'</span> } = {}) {
     <span class="k">super</span>();
     <span class="k">const</span> T = textures();
     <span class="k">this</span>.density = density;
+    <span class="k">this</span>.motion = motion;
     <span class="k">this</span>.loop = loop;
     <span class="k">this</span>.R = diameter / <span class="n">2</span>;
     <span class="k">this</span>._seed0 = seed;
@@ -292,7 +302,7 @@ fx.play();
     <span class="k">this</span>._shake = <span class="n">0</span>;
     <span class="k">this</span>._embersOn = embers;
 
-    <span class="c">// огонь за символом и перед ним в двух слоях; трясутся только они, символ неподвижен</span>
+    <span class="c">// огонь за символом и перед ним в двух слоях, символ между ними</span>
     <span class="k">const</span> back = <span class="k">new</span> Container();
     <span class="k">const</span> front = <span class="k">new</span> Container();
     <span class="k">this</span>._layers = [back, front];
@@ -303,14 +313,17 @@ fx.play();
     <span class="k">this</span>._back = makePool(T.flame, <span class="n">2400</span>);
     back.addChild(<span class="k">this</span>._rays, <span class="k">this</span>._glow, <span class="k">this</span>._embers.pc, <span class="k">this</span>._back.pc);
 
-    <span class="k">const</span> wrap = <span class="k">new</span> Container();
+    <span class="k">const</span> wrap = (<span class="k">this</span>._wrap = <span class="k">new</span> Container());
+    <span class="k">this</span>._edge = <span class="k">new</span> Sprite(coin); <span class="k">this</span>._edge.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._edge.tint = <span class="n">0x7a4a0e</span>; <span class="k">this</span>._edge.visible = <span class="k">false</span>;   <span class="c">// толщина при повороте</span>
     <span class="k">this</span>._coin = <span class="k">new</span> Sprite(coin); <span class="k">this</span>._coin.anchor.set(<span class="n">0.5</span>);
-    <span class="k">this</span>._coin.scale.set(diameter / coin.width);
+    <span class="k">this</span>._coinScale = diameter / coin.width;
+    <span class="k">this</span>._coin.scale.set(<span class="k">this</span>._coinScale);
+    <span class="k">this</span>._edge.scale.set(<span class="k">this</span>._coinScale);
     <span class="k">this</span>._mask = <span class="k">new</span> Graphics().circle(<span class="n">0</span>, <span class="n">0</span>, <span class="k">this</span>.R * <span class="n">0.965</span>).fill(<span class="n">0xffffff</span>);
     <span class="k">this</span>._band = <span class="k">new</span> Sprite(T.band); <span class="k">this</span>._band.anchor.set(<span class="n">0.5</span>); <span class="k">this</span>._band.blendMode = <span class="s">'add'</span>;
     <span class="k">this</span>._band.rotation = <span class="n">0.42</span>; <span class="k">this</span>._band.height = diameter * <span class="n">1.6</span>; <span class="k">this</span>._band.width = diameter * <span class="n">0.3</span>;
     <span class="k">this</span>._band.mask = <span class="k">this</span>._mask; <span class="k">this</span>._band.visible = <span class="k">false</span>;
-    wrap.addChild(<span class="k">this</span>._coin, <span class="k">this</span>._mask, <span class="k">this</span>._band);
+    wrap.addChild(<span class="k">this</span>._edge, <span class="k">this</span>._coin, <span class="k">this</span>._mask, <span class="k">this</span>._band);
 
     <span class="k">this</span>._front = makePool(T.flame, <span class="n">2400</span>);
     <span class="k">this</span>._burst = makePool(T.flame, <span class="n">1400</span>);
@@ -377,7 +390,7 @@ fx.play();
       <span class="k">const</span> it = <span class="k">this</span>._spawn(<span class="k">this</span>._back);
       <span class="k">if</span> (!it) <span class="k">continue</span>;
       <span class="k">const</span> a = <span class="k">this</span>._r(<span class="n">0</span>, Math.PI * <span class="n">2</span>), r = <span class="k">this</span>.R * <span class="k">this</span>._r(<span class="n">0.97</span>, <span class="n">1.06</span>);
-      it.x = Math.cos(a) * r; it.y = Math.sin(a) * r;
+      it.x = <span class="k">this</span>._wrap.x + Math.cos(a) * r; it.y = <span class="k">this</span>._wrap.y + Math.sin(a) * r;
       it.vx = Math.cos(a) * <span class="k">this</span>._r(<span class="n">30</span>, <span class="n">90</span>); it.vy = Math.sin(a) * <span class="k">this</span>._r(<span class="n">30</span>, <span class="n">90</span>) - <span class="k">this</span>._r(<span class="n">70</span>, <span class="n">170</span>);
       it.max = <span class="k">this</span>._r(<span class="n">0.4</span>, <span class="n">0.8</span>); it.s = <span class="k">this</span>._r(<span class="n">0.7</span>, <span class="n">1.3</span>) * <span class="k">this</span>.R / <span class="n">200</span>; it.r = <span class="n">0</span>; it.ph = <span class="k">this</span>._r(<span class="n">0</span>, <span class="n">6.28</span>);
     }
@@ -475,10 +488,36 @@ fx.play();
       p.tint = EMBER(k); p.alpha = (<span class="n">0.35</span> + <span class="n">0.65</span> * Math.abs(Math.sin(t * <span class="n">7</span> + it.ph * <span class="n">3</span>))) * Math.min(<span class="n">1</span>, k * <span class="n">8</span>) * (<span class="n">1</span> - k);
     });
 
+    <span class="c">// символ</span>
+    <span class="k">const</span> m = <span class="k">this</span>.motion;
+    <span class="k">let</span> sc = <span class="n">1</span>, rot = <span class="n">0</span>, faceX = <span class="n">1</span>, edgeOff = <span class="n">0</span>, bob = <span class="n">0</span>;
+    <span class="k">if</span> (m !== <span class="s">'none'</span>) {
+      <span class="c">// замах перед ударом, пружинящий отскок и лёгкое покачивание</span>
+      sc = <span class="n">1</span> + Math.sin(t * <span class="n">3</span>) * <span class="n">0.012</span>;
+      bob = Math.sin(t * <span class="n">2</span>) * <span class="n">6</span> * (R / <span class="n">200</span>);
+      <span class="k">if</span> (T &lt; <span class="n">0.18</span>) { <span class="k">const</span> u = easeOutCubic(T / <span class="n">0.18</span>); sc *= <span class="n">1</span> - <span class="n">0.1</span> * u; rot = -<span class="n">0.05</span> * u; }
+      <span class="k">else</span> <span class="k">if</span> (T &lt; <span class="n">0.9</span>) { <span class="k">const</span> u = (T - <span class="n">0.18</span>) / <span class="n">0.72</span>; sc *= <span class="n">1</span> + <span class="n">0.22</span> * Math.exp(-<span class="n">5</span> * u) * Math.cos(<span class="n">11</span> * u); rot = -<span class="n">0.05</span> * (<span class="n">1</span> - u); }
+    }
+    <span class="k">if</span> (m === <span class="s">'spin'</span> &amp;&amp; T &gt; <span class="n">0.95</span> &amp;&amp; T &lt; <span class="n">1.75</span>) {
+      <span class="c">// двойной поворот ребром: ширина по косинусу, тёмная копия сзади даёт толщину</span>
+      <span class="k">const</span> th = easeInOut((T - <span class="n">0.95</span>) / <span class="n">0.8</span>) * Math.PI * <span class="n">4</span>;
+      faceX = Math.max(<span class="n">0.035</span>, Math.abs(Math.cos(th)));
+      edgeOff = Math.sin(th) * <span class="n">16</span> * (R / <span class="n">200</span>) * Math.sign(Math.cos(th) || <span class="n">1</span>);
+    }
+    <span class="k">const</span> cs = <span class="k">this</span>._coinScale * sc;
+    <span class="k">this</span>._wrap.rotation = rot;
+    <span class="k">this</span>._coin.scale.set(cs * faceX, cs);
+    <span class="k">this</span>._edge.scale.set(cs * faceX, cs);
+    <span class="k">this</span>._edge.x = edgeOff;
+    <span class="k">this</span>._edge.visible = faceX &lt; <span class="n">0.999</span>;
+    <span class="k">const</span> v = Math.round(<span class="n">255</span> * (<span class="n">0.6</span> + <span class="n">0.4</span> * faceX));
+    <span class="k">this</span>._coin.tint = faceX &lt; <span class="n">0.999</span> ? (v &lt;&lt; <span class="n">16</span>) | (v &lt;&lt; <span class="n">8</span>) | Math.round(v * <span class="n">0.96</span>) : <span class="n">0xffffff</span>;
+    <span class="k">this</span>._mask.scale.set(sc * faceX, sc);
+
     <span class="c">// блик</span>
     <span class="k">if</span> (T &gt; <span class="n">1.85</span> &amp;&amp; T &lt; <span class="n">2.5</span>) {
       <span class="k">const</span> u = (T - <span class="n">1.85</span>) / <span class="n">0.65</span>;
-      <span class="k">this</span>._band.visible = <span class="k">true</span>; <span class="k">this</span>._band.x = (-<span class="n">1.1</span> + <span class="n">2.2</span> * easeInOut(u)) * R; <span class="k">this</span>._band.alpha = Math.sin(u * Math.PI);
+      <span class="k">this</span>._band.visible = <span class="k">true</span>; <span class="k">this</span>._band.x = (-<span class="n">1.1</span> + <span class="n">2.2</span> * easeInOut(u)) * R * faceX; <span class="k">this</span>._band.alpha = Math.sin(u * Math.PI);
     } <span class="k">else</span> <span class="k">this</span>._band.visible = <span class="k">false</span>;
 
     <span class="c">// лучи, свечение, ударные волны, вспышка</span>
@@ -497,11 +536,13 @@ fx.play();
     });
     <span class="k">this</span>._flash.alpha = T &gt;= <span class="n">0.18</span> &amp;&amp; T &lt; <span class="n">0.5</span> ? (<span class="n">1</span> - (T - <span class="n">0.18</span>) / <span class="n">0.32</span>) * <span class="n">0.55</span> : <span class="n">0</span>;
 
-    <span class="c">// тряска огня на ударе: символ и позиция самого эффекта не двигаются</span>
+    <span class="c">// тряска на ударе; при motion: 'none' трясётся только огонь, символ стоит</span>
     <span class="k">this</span>._shake = Math.max(<span class="n">0</span>, <span class="k">this</span>._shake - dt * <span class="n">2.8</span>);
     <span class="k">const</span> sh = <span class="k">this</span>._shake * <span class="k">this</span>._shake * <span class="n">14</span> * (R / <span class="n">200</span>);
     <span class="k">const</span> sx = <span class="k">this</span>._r(-sh, sh), sy = <span class="k">this</span>._r(-sh, sh);
     <span class="k">for</span> (<span class="k">const</span> l <span class="k">of</span> <span class="k">this</span>._layers) l.position.set(sx, sy);
+    <span class="k">if</span> (m === <span class="s">'none'</span>) <span class="k">this</span>._wrap.position.set(<span class="n">0</span>, <span class="n">0</span>);
+    <span class="k">else</span> <span class="k">this</span>._wrap.position.set(sx, bob + sy);
   }
 
   destroy(options) {
@@ -517,8 +558,10 @@ fx.play();
 <script type="module">
 // ----- the module exactly as shown above (only the pixi.js import points to the CDN here)
 // fire-coin-win.js — огненный выигрыш вокруг круглого символа. Pixi 8.
-// Символ — одна статичная текстура, он стоит на месте. Огненное кольцо, взрыв искр,
-// ударные волны, горящий край, блик и лучи считаются частицами каждый кадр.
+// Символ — одна статичная картинка. По умолчанию он отыгрывает удар и двойной поворот
+// ребром (motion: 'spin'); 'punch' — только удар и покачивание, 'none' — стоит на месте.
+// Огненное кольцо, взрыв искр, ударные волны, горящий край, блик и лучи считаются
+// частицами каждый кадр.
 // Текстуры частиц рисуются кодом один раз и общие для всех экземпляров.
 import { Container, Sprite, Texture, ParticleContainer, Particle, Graphics } from 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs';
 
@@ -626,11 +669,14 @@ export class FireCoinWin extends Container {
    * @param {boolean} [o.loop=false]   повторять выигрыш каждые 4,2 с
    * @param {boolean} [o.embers=true]  угольки, поднимающиеся вокруг символа
    * @param {number}  [o.seed=7]       зерно случайности: одинаковый выигрыш при каждом play()
+   * @param {'spin'|'punch'|'none'} [o.motion='spin'] движение символа: удар и поворот ребром,
+   *                                   только удар и покачивание, или неподвижно (можно менять на лету)
    */
-  constructor({ coin, diameter = 400, density = 1, loop = false, embers = true, seed = 7 } = {}) {
+  constructor({ coin, diameter = 400, density = 1, loop = false, embers = true, seed = 7, motion = 'spin' } = {}) {
     super();
     const T = textures();
     this.density = density;
+    this.motion = motion;
     this.loop = loop;
     this.R = diameter / 2;
     this._seed0 = seed;
@@ -642,7 +688,7 @@ export class FireCoinWin extends Container {
     this._shake = 0;
     this._embersOn = embers;
 
-    // огонь за символом и перед ним в двух слоях; трясутся только они, символ неподвижен
+    // огонь за символом и перед ним в двух слоях, символ между ними
     const back = new Container();
     const front = new Container();
     this._layers = [back, front];
@@ -653,14 +699,17 @@ export class FireCoinWin extends Container {
     this._back = makePool(T.flame, 2400);
     back.addChild(this._rays, this._glow, this._embers.pc, this._back.pc);
 
-    const wrap = new Container();
+    const wrap = (this._wrap = new Container());
+    this._edge = new Sprite(coin); this._edge.anchor.set(0.5); this._edge.tint = 0x7a4a0e; this._edge.visible = false;   // толщина при повороте
     this._coin = new Sprite(coin); this._coin.anchor.set(0.5);
-    this._coin.scale.set(diameter / coin.width);
+    this._coinScale = diameter / coin.width;
+    this._coin.scale.set(this._coinScale);
+    this._edge.scale.set(this._coinScale);
     this._mask = new Graphics().circle(0, 0, this.R * 0.965).fill(0xffffff);
     this._band = new Sprite(T.band); this._band.anchor.set(0.5); this._band.blendMode = 'add';
     this._band.rotation = 0.42; this._band.height = diameter * 1.6; this._band.width = diameter * 0.3;
     this._band.mask = this._mask; this._band.visible = false;
-    wrap.addChild(this._coin, this._mask, this._band);
+    wrap.addChild(this._edge, this._coin, this._mask, this._band);
 
     this._front = makePool(T.flame, 2400);
     this._burst = makePool(T.flame, 1400);
@@ -727,7 +776,7 @@ export class FireCoinWin extends Container {
       const it = this._spawn(this._back);
       if (!it) continue;
       const a = this._r(0, Math.PI * 2), r = this.R * this._r(0.97, 1.06);
-      it.x = Math.cos(a) * r; it.y = Math.sin(a) * r;
+      it.x = this._wrap.x + Math.cos(a) * r; it.y = this._wrap.y + Math.sin(a) * r;
       it.vx = Math.cos(a) * this._r(30, 90); it.vy = Math.sin(a) * this._r(30, 90) - this._r(70, 170);
       it.max = this._r(0.4, 0.8); it.s = this._r(0.7, 1.3) * this.R / 200; it.r = 0; it.ph = this._r(0, 6.28);
     }
@@ -825,10 +874,36 @@ export class FireCoinWin extends Container {
       p.tint = EMBER(k); p.alpha = (0.35 + 0.65 * Math.abs(Math.sin(t * 7 + it.ph * 3))) * Math.min(1, k * 8) * (1 - k);
     });
 
+    // символ
+    const m = this.motion;
+    let sc = 1, rot = 0, faceX = 1, edgeOff = 0, bob = 0;
+    if (m !== 'none') {
+      // замах перед ударом, пружинящий отскок и лёгкое покачивание
+      sc = 1 + Math.sin(t * 3) * 0.012;
+      bob = Math.sin(t * 2) * 6 * (R / 200);
+      if (T < 0.18) { const u = easeOutCubic(T / 0.18); sc *= 1 - 0.1 * u; rot = -0.05 * u; }
+      else if (T < 0.9) { const u = (T - 0.18) / 0.72; sc *= 1 + 0.22 * Math.exp(-5 * u) * Math.cos(11 * u); rot = -0.05 * (1 - u); }
+    }
+    if (m === 'spin' && T > 0.95 && T < 1.75) {
+      // двойной поворот ребром: ширина по косинусу, тёмная копия сзади даёт толщину
+      const th = easeInOut((T - 0.95) / 0.8) * Math.PI * 4;
+      faceX = Math.max(0.035, Math.abs(Math.cos(th)));
+      edgeOff = Math.sin(th) * 16 * (R / 200) * Math.sign(Math.cos(th) || 1);
+    }
+    const cs = this._coinScale * sc;
+    this._wrap.rotation = rot;
+    this._coin.scale.set(cs * faceX, cs);
+    this._edge.scale.set(cs * faceX, cs);
+    this._edge.x = edgeOff;
+    this._edge.visible = faceX < 0.999;
+    const v = Math.round(255 * (0.6 + 0.4 * faceX));
+    this._coin.tint = faceX < 0.999 ? (v << 16) | (v << 8) | Math.round(v * 0.96) : 0xffffff;
+    this._mask.scale.set(sc * faceX, sc);
+
     // блик
     if (T > 1.85 && T < 2.5) {
       const u = (T - 1.85) / 0.65;
-      this._band.visible = true; this._band.x = (-1.1 + 2.2 * easeInOut(u)) * R; this._band.alpha = Math.sin(u * Math.PI);
+      this._band.visible = true; this._band.x = (-1.1 + 2.2 * easeInOut(u)) * R * faceX; this._band.alpha = Math.sin(u * Math.PI);
     } else this._band.visible = false;
 
     // лучи, свечение, ударные волны, вспышка
@@ -847,11 +922,13 @@ export class FireCoinWin extends Container {
     });
     this._flash.alpha = T >= 0.18 && T < 0.5 ? (1 - (T - 0.18) / 0.32) * 0.55 : 0;
 
-    // тряска огня на ударе: символ и позиция самого эффекта не двигаются
+    // тряска на ударе; при motion: 'none' трясётся только огонь, символ стоит
     this._shake = Math.max(0, this._shake - dt * 2.8);
     const sh = this._shake * this._shake * 14 * (R / 200);
     const sx = this._r(-sh, sh), sy = this._r(-sh, sh);
     for (const l of this._layers) l.position.set(sx, sy);
+    if (m === 'none') this._wrap.position.set(0, 0);
+    else this._wrap.position.set(sx, bob + sy);
   }
 
   destroy(options) {
@@ -930,6 +1007,12 @@ const replay = () => fx.play();
 $('again').addEventListener('click', replay);
 $('stage').addEventListener('click', replay);
 $('stage').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); replay(); } });
+$('motion').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  fx.motion = b.dataset.m;
+  for (const x of $('motion').children) x.setAttribute('aria-pressed', String(x === b));
+  fx.play();
+});
 $('density').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   fx.density = +b.dataset.v;

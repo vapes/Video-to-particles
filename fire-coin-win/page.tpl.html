@@ -120,6 +120,11 @@ pre.tall { max-height: 460px; overflow: auto; }
     <div class="facts"><span>Монета <b class="good">0,03 МБ</b></span><span>Модуль <b class="good">__MODULE_MB__</b></span><span>Длина <b>бесконечно</b></span><span>Видеопамять <b id="vram">…</b></span></div>
     <div class="controls">
       <button type="button" class="btn" id="again">Ещё раз</button>
+      <div class="seg" id="motion" aria-label="Движение монеты">
+        <button type="button" id="m-spin" data-m="spin" aria-pressed="true">Вращается</button>
+        <button type="button" id="m-punch" data-m="punch" aria-pressed="false">Удар</button>
+        <button type="button" id="m-none" data-m="none" aria-pressed="false">Стоит</button>
+      </div>
       <div class="seg" id="density" aria-label="Количество частиц">
         <button type="button" id="d-low" data-v="0.5" aria-pressed="false">Экономно</button>
         <button type="button" id="d-mid" data-v="1" aria-pressed="true">Норма</button>
@@ -221,6 +226,12 @@ const replay = () => fx.play();
 $('again').addEventListener('click', replay);
 $('stage').addEventListener('click', replay);
 $('stage').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); replay(); } });
+$('motion').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  fx.motion = b.dataset.m;
+  for (const x of $('motion').children) x.setAttribute('aria-pressed', String(x === b));
+  fx.play();
+});
 $('density').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   fx.density = +b.dataset.v;
