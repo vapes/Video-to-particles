@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Video to particles</title>
+<meta name="description" content="Анимация выигрыша для слота на Pixi 8: AVIF-секвенция, тайл-дельты, видео, WebCodecs и частицы в реальном времени.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column — what the project is, the two demos as links, the headline numbers. */
+:root {
+  --bg: #F3F0F5;
+  --surface: #FFFFFF;
+  --fg: #1C1620;
+  --muted: #665D6C;
+  --line: #DED7E3;
+  --ember: #C2410C;
+  --good: #1C7348;
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #110D14; --surface: #1A151E; --fg: #F1EBF3; --muted: #A69CAD; --line: #30283A; --ember: #FB923C; --good: #4FC58C; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 48px;
+}
+main { max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+main > * { min-width: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 6.5vw, 38px); line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-weight: 500; font-size: 18px; margin: 0 0 6px; text-wrap: balance; }
+p { margin: 0; max-width: 65ch; }
+.lead { color: var(--muted); }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember); margin-bottom: 8px; }
+
+.demos { display: grid; gap: 12px; }
+.demo {
+  display: grid; gap: 6px; padding: 18px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--line); color: inherit; text-decoration: none;
+}
+.demo:hover { border-color: var(--ember); }
+.demo:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+.demo .go { font: 600 13px/1 var(--font-body); color: var(--ember); margin-top: 4px; }
+.demo p { color: var(--muted); font-size: 14px; }
+
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 9px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 150px; }
+thead th { font-weight: 600; font-size: 12px; color: var(--muted); }
+tbody tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.best { color: var(--good); font-weight: 600; }
+.note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+a { color: var(--ember); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Pixi 8 · игра на 60 fps</div>
+    <h1>Video to particles</h1>
+    <p class="lead">Как уложить анимацию выигрыша для слота в минимум мегабайт и видеопамяти: AVIF-секвенция, тайл-дельты, видео, WebCodecs и частицы в реальном времени на настоящем ролике из генератора.</p>
+  </header>
+
+  <nav class="demos" aria-label="Демо">
+    <a class="demo" href="fire-coin-win/">
+      <h2>Видео против частиц</h2>
+      <p>Ролик из генератора и тот же выигрыш из одной картинки монеты и частиц. Внизу модуль FireCoinWin для вставки в проект.</p>
+      <span class="go">Открыть демо →</span>
+    </a>
+    <a class="demo" href="packing-bench/">
+      <h2>Тайл-дельты против AVIF-секвенции</h2>
+      <p>Четыре анимации в четырёх упаковках. Кнопка «Замерить» меряет загрузку, декод, видеопамять и время кадра на твоём устройстве.</p>
+      <span class="go">Открыть демо →</span>
+    </a>
+  </nav>
+
+  <section aria-label="Итог">
+    <h2>«Монета в огне», 5 секунд</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Упаковка</th><th>Скачать</th><th>Видеопамять</th></tr></thead>
+        <tbody>
+          <tr><td>Монета + частицы</td><td class="num best">0,05 МБ</td><td class="num best">≈2 МБ</td></tr>
+          <tr><td>Видео из генератора</td><td class="num">0,99 МБ</td><td class="num">1,9 МБ</td></tr>
+          <tr><td>AVIF-секвенция</td><td class="num">3,97 МБ</td><td class="num">226 МБ</td></tr>
+          <tr><td>Тайл-дельты</td><td class="num">4,61 МБ</td><td class="num">230 МБ</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Все замеры, скрипты и модуль — в <a href="https://github.com/vapes/Video-to-particles">репозитории</a>.</p>
+  </section>
+</main>
+</body>
+</html>
